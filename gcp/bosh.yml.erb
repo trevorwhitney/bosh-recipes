@@ -1,10 +1,44 @@
 ---
 <%
-['zone', 'service_account_email', 'network', 'subnetwork', 'project_id', 'ssh_key_path'].each do |val|
+  [
+    'zone', 
+    'service_account_email', 
+    'network', 
+    'subnetwork', 
+    'project_id', 
+    'ssh_key_path',
+].each do |val|
   if ENV[val].nil? || ENV[val].empty?
     raise "Missing environment variable: #{val}"
   end
 end
+
+credentials = YAML.load_file('credentials.yml')
+[
+  'nats_password',
+  'postgres_password',
+  'director_password',
+  'agent_password',
+  'hm_password',
+  'nats_password',
+  'mbus_password',
+  'agent_username',
+  'agent_password'
+].each do |val|
+  if credentials[val].nil? || credentials[val].empty?
+    raise "Missing credential: #{credential}"
+  end
+end
+
+nats_password = credentials['nats_password']
+postgres_password = credentials['postgres_password']
+director_password = credentials['director_password']
+agent_password = credentials['agent_password']
+hm_password = credentials['hm_password']
+nats_password = credentials['nats_password']
+mbus_password = credentials['mbus_password']
+agent_username = credentials['agent_username']
+agent_password = credentials['agent_password']
 %>
 name: bosh
 
@@ -86,13 +120,13 @@ jobs:
       nats:
         address: 127.0.0.1
         user: nats
-        password: nats-password
+        password: <%= nats_password %>
 
       postgres: &db
         listen_address: 127.0.0.1
         host: 127.0.0.1
         user: postgres
-        password: postgres-password
+        password: <%= postgres_password %>
         database: bosh
         adapter: postgres
 
@@ -108,10 +142,10 @@ jobs:
         provider: dav
         director:
           user: director
-          password: director-password
+          password: <%= director_password %>
         agent:
           user: agent
-          password: agent-password
+          password: <%= agent_password %>
 
       director:
         address: 127.0.0.1
@@ -122,27 +156,27 @@ jobs:
           provider: local
           local:
             users:
-              - name: admin
-                password: admin
+              - name: <%= admin_username %>
+                password: <%= admin_password %>
               - name: hm
-                password: hm-password
+                password: <%= hm_password %>
       hm:
         director_account:
           user: hm
-          password: hm-password
+          password: <%= hm_password %>
         resurrector_enabled: true
 
       google: &google_properties
         project: <%= ENV['project_id'] %>
 
       agent:
-        mbus: nats://nats:nats-password@10.0.0.6:4222
+        mbus: nats://nats:<%= nats_password %>@10.0.0.6:4222
         ntp: *ntp
         blobstore:
            options:
              endpoint: http://10.0.0.6:25250
              user: agent
-             password: agent-password
+             password: <%= agent_password %>
 
       ntp: &ntp
         - 169.254.169.254
@@ -158,10 +192,10 @@ cloud_provider:
     user: bosh
     private_key: <%= ENV['ssh_key_path'] %>
 
-  mbus: https://mbus:mbus-password@10.0.0.6:6868
+  mbus: https://mbus:<%= mbus_password %>@10.0.0.6:6868
 
   properties:
     google: *google_properties
-    agent: {mbus: "https://mbus:mbus-password@0.0.0.0:6868"}
+    agent: {mbus: "https://mbus:<%= mbus_password %>@0.0.0.0:6868"}
     blobstore: {provider: local, path: /var/vcap/micro_bosh/data/cache}
     ntp: *ntp
