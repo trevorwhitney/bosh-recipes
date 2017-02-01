@@ -1,2 +1,4 @@
 bosh-credentials.yml
 bosh.yml
+
+gcp/privates

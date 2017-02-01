@@ -7,6 +7,9 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 
+bin_dir="$(cd $(dirname "$0") && pwd)"
+source $bin_dir/setup_environment.sh
+
 export service_account=bosh-user
 export project_id=$(gcloud config list 2>/dev/null | grep project | sed -e 's/project = //g')
 export service_account_email=${service_account}@${project_id}.iam.gserviceaccount.com
@@ -14,5 +17,5 @@ export service_account_email=${service_account}@${project_id}.iam.gserviceaccoun
   gcloud iam service-accounts create ${service_account}
 
 export admin_username=$1
-erb bosh-credentials.yml.erb > bosh-credentials.yml
+erb bosh-credentials.yml.erb > $privates_dir/bosh-credentials.yml
 erb bosh.yml.erb > bosh.yml
