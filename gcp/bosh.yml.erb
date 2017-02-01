@@ -1,19 +1,21 @@
 ---
 <%
-  [
-    'zone', 
-    'service_account_email', 
-    'network', 
-    'subnetwork', 
-    'project_id', 
-    'ssh_key_path',
+require 'yaml'
+
+[
+  'zone', 
+  'service_account_email', 
+  'network', 
+  'subnetwork', 
+  'project_id', 
+  'ssh_key_path',
 ].each do |val|
   if ENV[val].nil? || ENV[val].empty?
     raise "Missing environment variable: #{val}"
   end
 end
 
-credentials = YAML.load_file('credentials.yml')
+credentials = YAML.load_file(File.expand_path('../bosh-credentials.yml', __FILE__))['credentials']
 [
   'nats_password',
   'postgres_password',
@@ -22,11 +24,11 @@ credentials = YAML.load_file('credentials.yml')
   'hm_password',
   'nats_password',
   'mbus_password',
-  'agent_username',
-  'agent_password'
+  'admin_username',
+  'admin_password',
 ].each do |val|
   if credentials[val].nil? || credentials[val].empty?
-    raise "Missing credential: #{credential}"
+    raise "Missing credential: #{val}"
   end
 end
 
@@ -35,10 +37,9 @@ postgres_password = credentials['postgres_password']
 director_password = credentials['director_password']
 agent_password = credentials['agent_password']
 hm_password = credentials['hm_password']
-nats_password = credentials['nats_password']
 mbus_password = credentials['mbus_password']
-agent_username = credentials['agent_username']
-agent_password = credentials['agent_password']
+admin_username = credentials['admin_username']
+admin_password = credentials['admin_password']
 %>
 name: bosh
 
