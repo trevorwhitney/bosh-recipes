@@ -15,7 +15,7 @@ require 'yaml'
   end
 end
 
-credentials = YAML.load_file(File.expand_path('../bosh-credentials.yml', __FILE__))['credentials']
+credentials = YAML.load_file(File.expand_path('../privates/bosh-credentials.yml', __FILE__))['credentials']
 [
   'nats_password',
   'postgres_password',

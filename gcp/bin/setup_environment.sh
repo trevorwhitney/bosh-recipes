@@ -1,6 +1,9 @@
 #!/bin/bash
 
+set -ex
+
 export gcp_dir="$(cd $bin_dir/.. && pwd)"
+mkdir -p $gcp_dir/privates
 export privates_dir="$(cd ${gcp_dir}/privates && pwd)"
 export terraform_dir="$(cd ${gcp_dir}/terraform && pwd)"
 
