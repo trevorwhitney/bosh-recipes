@@ -54,7 +54,7 @@ networks:
       range: 10.150.0.0/24
       gateway: 10.150.0.1
       cloud_properties:
-        network_name: concourse
+        network_name: bosh
         subnetwork_name: concourse-public-<%=region %>-1
         ephemeral_external_ip: true
         tags:
@@ -64,7 +64,7 @@ networks:
       range: 10.160.0.0/24
       gateway: 10.160.0.1
       cloud_properties:
-        network_name: concourse
+        network_name: bosh
         subnetwork_name: concourse-public-<%=region %>-2
         ephemeral_external_ip: true
         tags:
