@@ -1,18 +1,23 @@
+provider "google" {
+  project = "${var.projectid}"
+  region = "${var.region}"
+}
+
 resource "google_compute_subnetwork" "concourse-public-subnet-1" {
   name          = "concourse-public-${var.region}-1"
   ip_cidr_range = "10.150.0.0/16"
-  network       = "${google_compute_network.bosh.self_link}"
+  network       = "${var.host_network_link}"
 }
 
 resource "google_compute_subnetwork" "concourse-public-subnet-2" {
   name          = "concourse-public-${var.region}-2"
   ip_cidr_range = "10.160.0.0/16"
-  network       = "${google_compute_network.bosh.self_link}"
+  network       = "${var.host_network_link}"
 }
 
 resource "google_compute_firewall" "concourse-public" {
   name    = "concourse-public"
-  network = "${google_compute_network.bosh.name}"
+  network = "${var.host_network_name}"
 
   allow {
     protocol = "tcp"
@@ -25,7 +30,7 @@ resource "google_compute_firewall" "concourse-public" {
 
 resource "google_compute_firewall" "concourse-internal" {
   name    = "concourse-internal"
-  network = "${google_compute_network.bosh.name}"
+  network = "${var.host_network_name}"
 
   allow {
     protocol = "icmp"

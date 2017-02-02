@@ -15,7 +15,7 @@ if [ ! `gcloud iam service-accounts list | grep ${service_account}`  ]; then
       --role roles/owner
 fi
 
-[ ! -e $privates_dir/terraform.key.json ] && \
+[ ! -e $privates_dir/$project_id/terraform.key.json ] && \
   gcloud iam service-accounts keys create \
-    $privates_dir/terraform.key.json \
+    $privates_dir/$project_id/terraform.key.json \
     --iam-account ${service_account_email}

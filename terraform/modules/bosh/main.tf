@@ -1,36 +1,6 @@
-// Easier mainteance for updating GCE image string
-variable "latest_ubuntu" {
-    type = "string"
-    default = "ubuntu-1404-trusty-v20161109"
-}
-
-variable "projectid" {
-    type = "string"
-}
-
-variable "region" {
-    type = "string"
-    default = "us-central1"
-}
-
-variable "zone" {
-    type = "string"
-    default = "us-central1-b"
-}
-
-variable "prefix" {
-    type = "string"
-    default = ""
-}
-
-variable "service_account_email" {
-    type = "string"
-    default = ""
-}
-
 provider "google" {
-    project = "${var.projectid}"
-    region = "${var.region}"
+  project = "${var.projectid}"
+  region = "${var.region}"
 }
 
 resource "google_compute_network" "bosh" {
@@ -204,4 +174,12 @@ resource "google_compute_instance" "nat-instance-private-with-nat-primary" {
 sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 EOT
+}
+
+output "network_self_link" {
+  value = "${google_compute_network.bosh.self_link}"
+}
+
+output "network_name" {
+  value = "${google_compute_network.bosh.name}"
 }

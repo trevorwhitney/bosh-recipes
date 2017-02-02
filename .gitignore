@@ -5,3 +5,4 @@ privates
 
 .terraform
 .vagrant
+terraform.tfstate.backup
