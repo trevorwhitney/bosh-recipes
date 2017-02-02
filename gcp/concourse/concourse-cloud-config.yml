@@ -41,7 +41,7 @@ compilation:
   reuse_compilation_vms: true
   az: z1
   cloud_properties:
-    machine_type: n1-standard-1
+    machine_type: n1-standard-2
     root_disk_size_gb: 100
     root_disk_type: pd-ssd
     preemptible: true

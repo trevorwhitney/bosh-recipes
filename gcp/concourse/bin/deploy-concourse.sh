@@ -10,5 +10,6 @@ export director_uuid=`bosh status --uuid 2>/dev/null`
 export common_password=`ruby -ryaml -e "puts YAML.load_file('privates/concourse-credentials.yml')['credentials']['common_password']"`
 export atc_password=`ruby -ryaml -e "puts YAML.load_file('privates/concourse-credentials.yml')['credentials']['atc_password']"`
 
+bosh update cloud-config $concourse_dir/concourse-cloud-config.yml
 bosh deployment concourse.yml
 bosh -n deploy
