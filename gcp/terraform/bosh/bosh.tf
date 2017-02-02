@@ -72,8 +72,8 @@ resource "google_compute_firewall" "bosh-bastion" {
 }
 
 // Allow all traffic within subnet
-resource "google_compute_firewall" "intra-subnet-open" {
-  name    = "${var.prefix}intra-subnet-open"
+resource "google_compute_firewall" "bosh-internal" {
+  name    = "${var.prefix}bosh-internal"
   network = "${google_compute_network.bosh.name}"
 
   allow {
@@ -90,7 +90,8 @@ resource "google_compute_firewall" "intra-subnet-open" {
     ports    = ["1-65535"]
   }
 
-  source_tags = ["internal"]
+  source_tags = ["bosh-internal"]
+  source_tags = ["bosh-internal"]
 }
 
 // BOSH bastion host
@@ -99,7 +100,7 @@ resource "google_compute_instance" "bosh-bastion" {
   machine_type = "n1-standard-1"
   zone         = "${var.zone}"
 
-  tags = ["bosh-bastion", "internal"]
+  tags = ["bosh-bastion", "bosh-internal"]
 
   disk {
     image = "${var.latest_ubuntu}"

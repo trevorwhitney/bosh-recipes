@@ -4,3 +4,4 @@ bosh.yml
 gcp/privates
 
 .terraform
+.vagrant
