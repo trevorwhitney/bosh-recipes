@@ -91,7 +91,6 @@ resource "google_compute_firewall" "bosh-internal" {
   }
 
   source_tags = ["bosh-internal"]
-  source_tags = ["bosh-internal"]
 }
 
 // BOSH bastion host
