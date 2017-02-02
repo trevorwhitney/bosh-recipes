@@ -43,6 +43,8 @@ setup_terraform_remote_config() {
     -backend-config="project=${project_id}"
 
   terraform remote push
+
+  gsutil cp ${privates_dir}/${project_id}/terraform.key.json gs://${project_id}-terraform-config
 }
 
 export GOOGLE_CREDENTIALS=$(cat ${privates_dir}/${project_id}/terraform.key.json)
