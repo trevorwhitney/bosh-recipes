@@ -1,4 +1,26 @@
-# Bosh Recipes
+# BOSH on Google Cloud Platform
 
-A collection of recipes for setting up a BOSH director and
-deploying things using BOSH.
+## Installation
+
+Follow the instructions [here](https://github.com/cloudfoundry-incubator/bosh-google-cpi-release/tree/master/docs/bosh),
+with additional instructions [here](https://medium.com/google-cloud/playing-with-concourseci-via-a-google-cloud-platform-free-trial-65acfbdd02d2)
+
+1. `bin/install_gcloud.sh`
+1. `bin/create_terraform_key.sh`
+1. `bin/execute_terraform.sh`
+1. `gcloud compute ssh bosh-bastion`
+1. clone this repository to `~/workspace/bosh-recipes`
+1. `cd ~/workspace/bosh-recipes/gcp`
+1. `bin/setup-bosh-service-account.sh`
+1. `bin/generate-bosh-manifest.sh [ADMIN_USERNAME]`
+1. `bosh-init deploy bosh.yml`
+1. `gsutil cp bosh-state.yml gs://twhitney-terraform-bosh`
+1. `bosh target 10.0.0.6`
+1. `bosh upload stemcell https://bosh.io/d/stemcells/bosh-google-kvm-ubuntu-trusty-go_agent?v=3312.17`
+1. `bosh upload release https://bosh.io/d/github.com/concourse/concourse?v=2.6.0`
+1. `bosh upload release https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.1.1`
+1. `export zone2=us-central1-c`
+1. `bosh update cloud-config concourse-cloud-config.yml`
+1. `erb concourse-credentials.yml.erb > privates/concourse-credentials.yml`
+1. `bin/deploy-concourse.sh`
+
