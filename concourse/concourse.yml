@@ -9,6 +9,8 @@ director_uuid = ENV['director_uuid']
 external_url = "http://#{ENV['external_ip']}"
 common_password = ENV['common_password']
 atc_password = ENV['atc_password']
+github_client_id = ENV['github_client_id']
+github_client_secret = ENV['github_client_secret']
 deployment_name = "concourse"
 %>
 name: <%= deployment_name %>
@@ -37,9 +39,12 @@ instance_groups:
     properties:
       bind_port: 80
       external_url: <%= external_url %>
-      basic_auth_username: concourse
-      basic_auth_password: <%= atc_password %>
       publicly_viewable: true
+      github_auth:
+        client_id: <%= github_client_id %>
+        client_secret: <%= github_client_secret %>
+        authorize:
+            - user: trevorwhitney
 
       postgresql_database: &atc_db atc
 

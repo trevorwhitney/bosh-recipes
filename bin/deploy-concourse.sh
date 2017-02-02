@@ -11,6 +11,8 @@ credentials=`ruby $bin_dir/parse-credentials.rb`
 
 export atc_password=`echo $credentials | jq .atc_password`
 export common_password=`echo $credentials | jq .common_password`
+export github_client_id=`echo $credentials | jq .github_client_id`
+export github_client_secret=`echo $credentials | jq .github_client_secret`
 
 bosh update cloud-config $concourse_dir/concourse-cloud-config.yml
 bosh deployment $concourse_dir/concourse.yml
