@@ -12,5 +12,3 @@ export project_id=$(gcloud config list 2>/dev/null | grep project | sed -e 's/pr
 export region=us-central1
 export zone=us-central1-b
 export zone2=us-central1-c
-export service_account=terraform
-export service_account_email=${service_account}@${project_id}.iam.gserviceaccount.com

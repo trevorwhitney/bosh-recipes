@@ -1,7 +1,6 @@
 #!/bin/bash
 
 export service_account=bosh-user
-export project_id=$(gcloud config list 2>/dev/null | grep project | sed -e 's/project = //g')
 export service_account_email=${service_account}@${project_id}.iam.gserviceaccount.com
 
 if [ ! `gcloud iam service-accounts list | grep ${service_account}`   ]; then

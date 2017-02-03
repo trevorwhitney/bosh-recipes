@@ -17,7 +17,6 @@ with additional instructions [here](https://medium.com/google-cloud/playing-with
 1. `gcloud compute ssh bosh-bastion`
 1. clone this repository to `~/workspace/bosh-recipes`
 1. `cd ~/workspace/bosh-recipes`
-1. `bin/setup-bosh-service-account.sh`
 1. `bin/deploy-bosh-director.sh [ADMIN_USERNAME]`
 1. `bosh target 10.0.0.6`
 1. `bosh upload stemcell https://bosh.io/d/stemcells/bosh-google-kvm-ubuntu-trusty-go_agent?v=3312.17`

@@ -5,6 +5,9 @@ set -ex
 bin_dir="$(cd $(dirname "$0") && pwd)"
 source $bin_dir/setup_environment.sh
 
+export service_account=terraform
+export service_account_email=${service_account}@${project_id}.iam.gserviceaccount.com
+
 gcloud config set compute/zone ${zone}
 gcloud config set compute/region ${region}
 

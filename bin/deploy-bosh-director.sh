@@ -10,6 +10,7 @@ fi
 bin_dir="$(cd $(dirname "$0") && pwd)"
 source $bin_dir/setup_environment.sh
 
+$bin_dir/setup-bosh-service-account.sh
 $bin_dir/generate-bosh-manifest.sh $1
 bosh-init deploy bosh.yml
 gsutil cp ${privates_dir}/${project_id}/bosh-credentials.yml gs://${project_id}-terraform-config
