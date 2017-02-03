@@ -1,5 +1,8 @@
 #!/bin/bash
 
+bin_dir="$(cd $(dirname "$0") && pwd)"
+source $bin_dir/setup_environment.sh
+
 export service_account=bosh-user
 export service_account_email=${service_account}@${project_id}.iam.gserviceaccount.com
 
@@ -22,8 +25,3 @@ if [ ! `gcloud iam service-accounts list | grep ${service_account}`   ]; then
       --role roles/iam.serviceAccountActor
 fi
 
-if [ ! -e ~/.ssh/bosh ]; then
-  ssh-keygen -t rsa -f ~/.ssh/bosh -C bosh
-  gcloud compute project-info add-metadata --metadata-from-file \
-    sshKeys=<( gcloud compute project-info describe --format=json | jq -r '.commonInstanceMetadata.items[] | select(.key == "sshKeys") | .value' & echo "bosh:$(cat ~/.ssh/bosh.pub)"  )
-fi

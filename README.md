@@ -14,6 +14,7 @@ with additional instructions [here](https://medium.com/google-cloud/playing-with
 1. `gcloud config set project [PROJECT_ID]`
 1. `bin/create_terraform_key.sh`
 1. `bin/execute_terraform.sh`
+1. `bin/setup-bosh-service-account.sh`
 1. `gcloud compute ssh bosh-bastion`
 1. clone this repository to `~/workspace/bosh-recipes`
 1. `cd ~/workspace/bosh-recipes`

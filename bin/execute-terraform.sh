@@ -14,6 +14,10 @@ fi
 command -v terraform >/dev/null 2>&1 || { echo "Please install terraform" >&2; exit 1; }
 command -v gsutil >/dev/null 2>&1 || { echo "Please install gsutil" >&2; exit 1; }
 
+set +e
+[ ! `gsutil ls gs://${project_id}-terraform-config` ] && terraform remote config -disable
+set -e
+
 run_terraform() {
   terraform get $2
   terraform $1 \
