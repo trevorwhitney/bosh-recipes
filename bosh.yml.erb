@@ -15,7 +15,7 @@ require 'yaml'
   end
 end
 
-bosh_credentials_path = "#{ENV['privates_dir']}/#{ENV['project_id']}/credentials.yml"
+bosh_credentials_path = "#{ENV['privates_dir']}/#{ENV['project_id']}/bosh-credentials.yml"
 credentials = YAML.load_file(bosh_credentials_path)['credentials']
 [
   'nats_password',
