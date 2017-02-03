@@ -11,7 +11,7 @@ bin_dir="$(cd $(dirname "$0") && pwd)"
 source $bin_dir/setup_environment.sh
 
 if [ ! -e ~/.ssh/bosh ]; then
-  ssh-keygen -t rsa -f ~/.ssh/bosh -C bosh
+  ssh-keygen -t rsa -f ~/.ssh/bosh -C bosh -N ''
   gcloud compute project-info add-metadata --metadata-from-file \
     sshKeys=<( gcloud compute project-info describe --format=json | jq -r '.commonInstanceMetadata.items[] | select(.key == "sshKeys") | .value' & echo "bosh:$(cat ~/.ssh/bosh.pub)"  )
 fi
