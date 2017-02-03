@@ -15,6 +15,7 @@ command -v terraform >/dev/null 2>&1 || { echo "Please install terraform" >&2; e
 command -v gsutil >/dev/null 2>&1 || { echo "Please install gsutil" >&2; exit 1; }
 
 run_terraform() {
+  terraform get $2
   terraform $1 \
     -var service_account_email=${service_account_email} \
     -var projectid=${project_id} \

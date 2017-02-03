@@ -4,10 +4,6 @@ variable "latest_ubuntu" {
     default = "ubuntu-1404-trusty-v20170110"
 }
 
-variable "projectid" {
-    type = "string"
-}
-
 variable "region" {
     type = "string"
     default = "us-central1"

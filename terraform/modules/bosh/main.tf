@@ -1,8 +1,3 @@
-provider "google" {
-  project = "${var.projectid}"
-  region = "${var.region}"
-}
-
 resource "google_compute_network" "bosh" {
   name       = "${var.prefix}bosh"
 }

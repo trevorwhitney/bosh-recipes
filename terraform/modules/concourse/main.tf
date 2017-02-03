@@ -1,8 +1,3 @@
-provider "google" {
-  project = "${var.projectid}"
-  region = "${var.region}"
-}
-
 resource "google_compute_subnetwork" "concourse-public-subnet-1" {
   name          = "concourse-public-${var.region}-1"
   ip_cidr_range = "10.150.0.0/16"

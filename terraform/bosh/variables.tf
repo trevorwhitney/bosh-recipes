@@ -1,5 +1,5 @@
 variable "projectid" {
-    type = "string"
+  type = "string"
 }
 
 variable "service_account_email" {
