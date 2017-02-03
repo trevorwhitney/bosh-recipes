@@ -18,9 +18,7 @@ with additional instructions [here](https://medium.com/google-cloud/playing-with
 1. clone this repository to `~/workspace/bosh-recipes`
 1. `cd ~/workspace/bosh-recipes`
 1. `bin/setup-bosh-service-account.sh`
-1. `bin/generate-bosh-manifest.sh [ADMIN_USERNAME]`
-1. `bosh-init deploy bosh.yml`
-1. `gsutil cp bosh-state.yml gs://twhitney-terraform-bosh`
+1. `bin/deploy-bosh-director.sh [ADMIN_USERNAME]`
 1. `bosh target 10.0.0.6`
 1. `bosh upload stemcell https://bosh.io/d/stemcells/bosh-google-kvm-ubuntu-trusty-go_agent?v=3312.17`
 1. `bosh upload release https://bosh.io/d/github.com/concourse/concourse?v=2.6.0`
