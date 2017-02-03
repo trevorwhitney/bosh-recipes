@@ -17,5 +17,6 @@ export service_account_email=${service_account}@${project_id}.iam.gserviceaccoun
   gcloud iam service-accounts create ${service_account}
 
 export admin_username=$1
+mkdir -p ${privates_dir}/${project_id}
 erb bosh-credentials.yml.erb > ${privates_dir}/${project_id}/bosh-credentials.yml
 erb bosh.yml.erb > bosh.yml
