@@ -3,11 +3,11 @@
 require 'yaml'
 
 [
-  'zone', 
-  'service_account_email', 
-  'network', 
-  'subnetwork', 
-  'project_id', 
+  'zone',
+  'service_account_email',
+  'network',
+  'subnetwork',
+  'project_id',
   'ssh_key_path',
 ].each do |val|
   if ENV[val].nil? || ENV[val].empty?
@@ -56,8 +56,8 @@ resource_pools:
   - name: vms
     network: private
     stemcell:
-      url: https://bosh.io/d/stemcells/bosh-google-kvm-ubuntu-trusty-go_agent?v=3312.17
-      sha1: b788e7b08dccec03515ef3b4a2e2227dc3f98d55
+      url: https://bosh.io/d/stemcells/bosh-google-kvm-ubuntu-trusty-go_agent?v=3312.15
+      sha1: 3ac3ee83750f75bd74e8d3e3ad97808db23c30ba
     cloud_properties:
       zone: <%= ENV['zone'] %>
       machine_type: n1-standard-1
