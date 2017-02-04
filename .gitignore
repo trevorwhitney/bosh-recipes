@@ -6,3 +6,4 @@ privates
 .terraform
 .vagrant
 terraform.tfstate.backup
+bosh-state.json

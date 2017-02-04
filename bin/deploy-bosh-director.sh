@@ -19,4 +19,4 @@ fi
 $bin_dir/generate-bosh-manifest.sh $1
 bosh-init deploy bosh.yml
 gsutil cp ${privates_dir}/${project_id}/bosh-credentials.yml gs://${project_id}-terraform-config
-gsutil cp bosh-state.yml gs://${project_id}-terraform-config
+gsutil cp bosh-state.json gs://${project_id}-terraform-config
