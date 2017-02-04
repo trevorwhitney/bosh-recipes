@@ -20,11 +20,5 @@ with additional instructions [here](https://medium.com/google-cloud/playing-with
 1. `cd ~/workspace/bosh-recipes`
 1. `bin/deploy-bosh-director.sh [ADMIN_USERNAME]`
 1. `bosh target 10.0.0.6`
-1. `bosh upload stemcell https://bosh.io/d/stemcells/bosh-google-kvm-ubuntu-trusty-go_agent?v=3312.17`
-1. `bosh upload release https://bosh.io/d/github.com/concourse/concourse?v=2.6.0`
-1. `bosh upload release https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.1.1`
-1. `export zone2=us-central1-c`
-1. `bosh update cloud-config concourse-cloud-config.yml`
-1. `erb concourse-credentials.yml.erb > privates/concourse-credentials.yml`
-1. `bin/deploy-concourse.sh`
+1. `github_client_id=[GITHUB_CLIENT_ID] github_client_secret=[GITHUB_CLIENT_SECRET] bin/deploy-concourse.sh`
 
