@@ -10,6 +10,7 @@ resource "google_compute_subnetwork" "cf-compilation-subnet-1" {
 // Subnet for the private Cloud Foundry components
 resource "google_compute_subnetwork" "cf-private-subnet-1" {
   name          = "${var.prefix}cf-private-${var.region}"
+  region        = "${var.region}"
   ip_cidr_range = "192.168.0.0/16"
   network       = "https://www.googleapis.com/compute/v1/projects/${var.projectid}/global/networks/${var.network}"
 }

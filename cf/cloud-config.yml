@@ -93,7 +93,7 @@ vm_extensions:
     target_pool: concourse-target-pool
 
 compilation:
-  workers: 12
+  workers: 4
   network: compilation
   reuse_compilation_vms: true
   cloud_properties:
