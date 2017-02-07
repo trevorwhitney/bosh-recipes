@@ -539,6 +539,7 @@ instance_groups:
         properties:
           nats:
             user: nats
+            password: "<%= common_password %>"
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
           cc:
@@ -565,6 +566,7 @@ instance_groups:
         properties:
           nats:
             user: nats
+            password: "<%= common_password %>"
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
           cc:
@@ -605,6 +607,8 @@ instance_groups:
         release: cf
         properties:
           nats:
+            user: nats
+            password: "<%= common_password %>"
             port: 4222
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
@@ -682,6 +686,8 @@ instance_groups:
         release: cf
         properties:
           nats:
+            user: nats
+            password: "<%= common_password %>"
             port: 4222
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
