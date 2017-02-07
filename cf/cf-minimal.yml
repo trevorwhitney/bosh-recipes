@@ -859,6 +859,11 @@ instance_groups:
         properties:
           traffic_controller:
             zone: default
+          uaa:
+            clients:
+              doppler:
+                secret: <%= common_password %>
+            url: https://uaa.<%= root_domain %>
             etcd:
               client_cert: *etcd_client_cert
               client_key: *etcd_client_key
