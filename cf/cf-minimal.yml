@@ -534,6 +534,14 @@ instance_groups:
     jobs:
       - name: nats
         release: cf
+        properties:
+          nats:
+            user: nats
+            password: "<%= common_password %>"
+            port: 4222
+            address: 0.nats.private.<%= deployment_name %>.microbosh
+            machines:
+              - 0.nats.private.<%= deployment_name %>.microbosh
       - name: cloud_controller_ng
         release: cf
         properties:
@@ -848,6 +856,11 @@ instance_groups:
     jobs:
       - name: loggregator_trafficcontroller
         release: cf
+        properties:
+          traffic_controller:
+            etcd:
+              client_cert: *etcd_client_cert
+              client_key: *etcd_client_key
       - name: metron_agent
         release: cf
       - name: route_registrar
