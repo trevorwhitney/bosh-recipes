@@ -548,6 +548,70 @@ instance_groups:
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
           cc:
+            srv_api_uri: https://api.<%= root_domain %>
+            allow_app_ssh_access: true
+            default_to_diego_backend: true
+            service_name: cloud-controller-ng
+            external_protocol: https
+            bootstrap_admin_email: admin
+            bulk_api_password: "<%= common_password %>"
+            client_max_body_size: 1024M
+            db_encryption_key: "<%= common_password %>"
+            default_running_security_groups:
+              - all_open
+            default_staging_security_groups:
+              - all_open
+            disable_custom_buildpacks: false
+            external_host: api
+            install_buildpacks:
+              - name: staticfile_buildpack
+                package: staticfile-buildpack
+              - name: java_buildpack_offline
+                package: buildpack_java_offline
+              - name: ruby_buildpack
+                package: ruby-buildpack
+              - name: nodejs_buildpack
+                package: nodejs-buildpack
+              - name: go_buildpack
+                package: go-buildpack
+              - name: python_buildpack
+                package: python-buildpack
+              - name: php_buildpack
+                package: php-buildpack
+              - name: binary_buildpack
+                package: binary-buildpack
+            internal_api_user: internal_api_user
+            internal_api_password: "<%= common_password %>"
+            logging_level: debug
+            maximum_health_check_timeout: 600
+            quota_definitions:
+              default:
+                memory_limit: 10240
+                total_services: 100
+                non_basic_services_allowed: true
+                total_routes: 1000
+                trial_db_allowed: true
+              runaway:
+                memory_limit: 102400
+                total_services: -1
+                total_routes: 1000
+                non_basic_services_allowed: true
+            security_group_definitions:
+              - name: all_open
+                rules:
+                  - protocol: all
+                    destination: 0.0.0.0-255.255.255.255
+            stacks:
+              - name: cflinuxfs2
+                description: Cloud Foundry Linux-based filesystem
+              - name: windows2012R2
+                description: Microsoft Windows / .Net 64 bit
+            staging_upload_user: staging_upload_user
+            staging_upload_password: "<%= common_password %>"
+            tasks_disabled: true
+            uaa_resource_id: "cloud_controller,cloud_controller_service_permissions"
+            min_cli_version: 6.7.0
+            min_recommended_cli_version: 6.11.2
             buildpacks:
               blobstore_type: fog
               buildpack_directory_key: <%= gcs_buildpack_bucket %>
@@ -580,6 +644,70 @@ instance_groups:
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
           cc:
+            srv_api_uri: https://api.<%= root_domain %>
+            allow_app_ssh_access: true
+            default_to_diego_backend: true
+            service_name: cloud-controller-ng
+            external_protocol: https
+            bootstrap_admin_email: admin
+            bulk_api_password: "<%= common_password %>"
+            client_max_body_size: 1024M
+            db_encryption_key: "<%= common_password %>"
+            default_running_security_groups:
+              - all_open
+            default_staging_security_groups:
+              - all_open
+            disable_custom_buildpacks: false
+            external_host: api
+            install_buildpacks:
+              - name: staticfile_buildpack
+                package: staticfile-buildpack
+              - name: java_buildpack_offline
+                package: buildpack_java_offline
+              - name: ruby_buildpack
+                package: ruby-buildpack
+              - name: nodejs_buildpack
+                package: nodejs-buildpack
+              - name: go_buildpack
+                package: go-buildpack
+              - name: python_buildpack
+                package: python-buildpack
+              - name: php_buildpack
+                package: php-buildpack
+              - name: binary_buildpack
+                package: binary-buildpack
+            internal_api_user: internal_api_user
+            internal_api_password: "<%= common_password %>"
+            logging_level: debug
+            maximum_health_check_timeout: 600
+            quota_definitions:
+              default:
+                memory_limit: 10240
+                total_services: 100
+                non_basic_services_allowed: true
+                total_routes: 1000
+                trial_db_allowed: true
+              runaway:
+                memory_limit: 102400
+                total_services: -1
+                total_routes: 1000
+                non_basic_services_allowed: true
+            security_group_definitions:
+              - name: all_open
+                rules:
+                  - protocol: all
+                    destination: 0.0.0.0-255.255.255.255
+            stacks:
+              - name: cflinuxfs2
+                description: Cloud Foundry Linux-based filesystem
+              - name: windows2012R2
+                description: Microsoft Windows / .Net 64 bit
+            staging_upload_user: staging_upload_user
+            staging_upload_password: "<%= common_password %>"
+            tasks_disabled: true
+            uaa_resource_id: "cloud_controller,cloud_controller_service_permissions"
+            min_cli_version: 6.7.0
+            min_recommended_cli_version: 6.11.2
             buildpacks:
               blobstore_type: fog
               buildpack_directory_key: <%= gcs_buildpack_bucket %>
