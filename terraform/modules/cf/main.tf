@@ -95,3 +95,27 @@ resource "google_compute_forwarding_rule" "cf-wss" {
   region = "${var.region}"
 }
 
+// Buckets to use instead of a blobstore
+resource "google_storage_bucket" "buildpacks" {
+  name     = "${var.projectid}-cf-blobstore-buildpacks"
+  location = "US"
+  force_destroy = true
+}
+
+resource "google_storage_bucket" "droplets" {
+  name     = "${var.projectid}-cf-blobstore-droplets"
+  location = "US"
+  force_destroy = true
+}
+
+resource "google_storage_bucket" "packages" {
+  name     = "${var.projectid}-cf-blobstore-packages"
+  location = "US"
+  force_destroy = true
+}
+
+resource "google_storage_bucket" "resources" {
+  name     = "${var.projectid}-blobstore-resources"
+  location = "US"
+  force_destroy = true
+}

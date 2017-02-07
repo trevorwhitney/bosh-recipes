@@ -28,3 +28,19 @@ output "region" {
 output "region_compilation" {
   value = "${var.region_compilation}"
 }
+
+output "cf_buildpack_bucket" {
+  value = "${google_storage_bucket.buildpacks.name}"
+}
+
+output "cf_droplet_bucket" {
+  value = "${google_storage_bucket.droplets.name}"
+}
+
+output "cf_package_bucket" {
+  value = "${google_storage_bucket.packages.name}"
+}
+
+output "cf_resource_bucket" {
+  value = "${google_storage_bucket.resources.name}"
+}
