@@ -32,4 +32,4 @@ bosh upload release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=231
 
 bosh update cloud-config $cf_dir/cloud-config.yml
 bosh deployment $cf_dir/cf-minimal.yml
-bosh deploy
+bosh -n deploy

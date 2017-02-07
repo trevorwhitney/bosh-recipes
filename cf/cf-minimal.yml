@@ -86,19 +86,6 @@ releases:
   - name: etcd
     version: "36"
 
-compilation:
-  workers: 12
-  network: compilation
-  reuse_compilation_vms: true
-  cloud_properties:
-    zone: <%= google_zone_compilation%>
-    region: <%= google_region_compilation%>
-    machine_type: n1-standard-2
-    root_disk_size_gb: 100
-    root_disk_type: pd-ssd
-    preemptible: true
-    service_account: <%= cf_service_account%>
-
 update:
   canaries: 1
   canary_watch_time: 30000-300000
