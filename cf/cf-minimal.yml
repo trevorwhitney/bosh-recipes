@@ -547,6 +547,18 @@ instance_groups:
             port: 4222
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
+          ccdb:
+            address: 0.mysql-proxy.private.<%= deployment_name %>.microbosh
+            port: 3306
+            db_scheme: mysql
+            roles:
+              - tag: admin
+                name: cc_admin
+                password: "<%= common_password %>"
+            databases:
+              - tag: cc
+                name: cc_db
+                citext: true
           cc:
             srv_api_uri: https://api.<%= root_domain %>
             allow_app_ssh_access: true
@@ -643,6 +655,18 @@ instance_groups:
             password: "<%= common_password %>"
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
+          ccdb:
+            address: 0.mysql-proxy.private.<%= deployment_name %>.microbosh
+            port: 3306
+            db_scheme: mysql
+            roles:
+              - tag: admin
+                name: cc_admin
+                password: "<%= common_password %>"
+            databases:
+              - tag: cc
+                name: cc_db
+                citext: true
           cc:
             srv_api_uri: https://api.<%= root_domain %>
             allow_app_ssh_access: true
