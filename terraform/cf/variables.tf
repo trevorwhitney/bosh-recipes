@@ -10,12 +10,12 @@ variable "projectid" {
 
 variable "region" {
     type = "string"
-    default = "us-central1"
+    default = "us-west1"
 }
 
 variable "zone" {
     type = "string"
-    default = "us-central1-b"
+    default = "us-west1-a"
 }
 
 variable "prefix" {

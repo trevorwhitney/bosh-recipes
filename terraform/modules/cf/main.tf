@@ -1,4 +1,3 @@
-
 // Subnet for the public Cloud Foundry components
 resource "google_compute_subnetwork" "cf-compilation-subnet-1" {
   name          = "${var.prefix}cf-compilation-${var.region_compilation}"
@@ -31,6 +30,7 @@ resource "google_compute_firewall" "cf-public" {
 // Static IP address for forwarding rule
 resource "google_compute_address" "cf" {
   name = "${var.prefix}cf"
+  region = "${var.region}"
 }
 
 // Health check
@@ -48,6 +48,7 @@ resource "google_compute_http_health_check" "cf-public" {
 // Load balancing target pool
 resource "google_compute_target_pool" "cf-public" {
   name = "${var.prefix}cf-public"
+  region = "${var.region}"
 
   health_checks = [
     "${google_compute_http_health_check.cf-public.name}"
@@ -61,6 +62,7 @@ resource "google_compute_forwarding_rule" "cf-http" {
   port_range  = "80"
   ip_protocol = "TCP"
   ip_address  = "${google_compute_address.cf.address}"
+  region = "${var.region}"
 }
 
 // HTTP forwarding rule
@@ -70,6 +72,7 @@ resource "google_compute_forwarding_rule" "cf-https" {
   port_range  = "443"
   ip_protocol = "TCP"
   ip_address  = "${google_compute_address.cf.address}"
+  region = "${var.region}"
 }
 
 // SSH forwarding rule
@@ -79,6 +82,7 @@ resource "google_compute_forwarding_rule" "cf-ssh" {
   port_range  = "2222"
   ip_protocol = "TCP"
   ip_address  = "${google_compute_address.cf.address}"
+  region = "${var.region}"
 }
 
 // WSS forwarding rule
@@ -88,5 +92,6 @@ resource "google_compute_forwarding_rule" "cf-wss" {
   port_range  = "4443"
   ip_protocol = "TCP"
   ip_address  = "${google_compute_address.cf.address}"
+  region = "${var.region}"
 }
 

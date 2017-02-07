@@ -23,8 +23,6 @@ run_terraform() {
   terraform $1 \
     -var service_account_email=${service_account_email} \
     -var projectid=${project_id} \
-    -var region=${region} \
-    -var zone=${zone} \
     $2
 }
 
@@ -53,6 +51,7 @@ setup_terraform_remote_config() {
 }
 
 export GOOGLE_CREDENTIALS=$(cat ${privates_dir}/${project_id}/terraform.key.json)
+export GOOGLE_APPLICATION_CREDENTIALS=${privates_dir}/${project_id}/terraform.key.json
 echo "Which plan would you like to work with?"
 select plan in "Bosh" "Bosh w/ Concourse" "Bosh, Concourse, & CF"; do
   case $plan in
