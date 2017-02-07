@@ -547,6 +547,10 @@ instance_groups:
             port: 4222
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
+          uaa:
+            clients:
+              cc_routing:
+                secret: "<%= common_password %>"
           ccdb:
             address: 0.mysql-proxy.private.<%= deployment_name %>.microbosh
             port: 3306
