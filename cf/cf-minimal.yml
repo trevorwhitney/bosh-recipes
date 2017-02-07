@@ -861,6 +861,8 @@ instance_groups:
             etcd:
               client_cert: *etcd_client_cert
               client_key: *etcd_client_key
+              machines:
+                - 0.etcd.private.<%= deployment_name %>.microbosh
       - name: metron_agent
         release: cf
       - name: route_registrar
