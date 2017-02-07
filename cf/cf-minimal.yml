@@ -74,7 +74,6 @@ ssl_key: &ssl_key |
 name: <%= deployment_name %>
 director_uuid: <%= director_uuid %>
 
-
 releases:
   - name: cf-mysql
     version: "23"
@@ -106,91 +105,6 @@ update:
   update_watch_time: 30000-300000
   max_in_flight: 1
   serial: false
-
-networks:
-  - name: compilation
-    type: manual
-    subnets:
-    - range: 10.200.0.0/16
-      gateway: 10.200.0.1
-      cloud_properties:
-        zone: <%= google_zone_compilation%>
-        region: <%= google_region_compilation%>
-        network_name: <%= network%>
-        subnetwork_name: <%= compilation_subnetwork%>
-        ephemeral_external_ip: false
-        tags:
-          - cf-internal
-          - internal
-          - no-ip
-
-  - name: private
-    type: manual
-    subnets:
-    - range: 192.168.0.0/16
-      gateway: 192.168.0.1
-      cloud_properties:
-        zone: <%= google_zone%>
-        network_name: <%= network%>
-        subnetwork_name: <%= private_subnetwork%>
-        ephemeral_external_ip: false
-        tags:
-          - cf-internal
-          - internal
-          - no-ip
-
-  - name: vip
-    type: vip
-
-resource_pools:
-  - name: common
-    network: private
-    stemcell:
-      name: bosh-google-kvm-ubuntu-trusty-go_agent
-      version: latest
-    cloud_properties:
-      zone: <%= google_zone%>
-      machine_type: n1-standard-1
-      root_disk_size_gb: 20
-      root_disk_type: pd-standard
-      service_account: <%= cf_service_account%>
-
-  - name: gorouter
-    network: private
-    stemcell:
-      name: bosh-google-kvm-ubuntu-trusty-go_agent
-      version: latest
-    cloud_properties:
-      zone: <%= google_zone%>
-      machine_type: n1-standard-1
-      root_disk_size_gb: 20
-      root_disk_type: pd-standard
-      target_pool: cf-public
-      service_account: <%= cf_service_account%>
-      tags:
-        - cf-public
-
-  - name: cells
-    network: private
-    stemcell:
-      name: bosh-google-kvm-ubuntu-trusty-go_agent
-      version: latest
-    cloud_properties:
-      zone: <%= google_zone%>
-      machine_type: n1-standard-1
-      root_disk_size_gb: 100
-      root_disk_type: pd-standard
-      service_account: <%= cf_service_account%>
-
-disk_pools:
-  - name: consul-etcd
-    disk_size: 2048
-
-  - name: mysql
-    disk_size: 10240
-
-  - name: diego
-    disk_size: 2048
 
 jobs:
   - name: consul-etcd

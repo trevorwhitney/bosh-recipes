@@ -7,7 +7,7 @@ if [ -z "$github_client_id" ]; then
   exit 1
 fi
 
-if [ -z "$github_client_id" ]; then
+if [ -z "$github_client_secret" ]; then
   echo "github_client_secret not set, aborting"
   exit 1
 fi
