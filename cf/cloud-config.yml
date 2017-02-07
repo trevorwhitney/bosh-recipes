@@ -34,6 +34,11 @@ azs:
   cloud_properties:
     zone: <%=zone_2 %>
 
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: latest
+
 vm_types:
 - name: common
   cloud_properties:
@@ -47,45 +52,32 @@ vm_types:
     root_disk_size_gb: 100
     root_disk_type: pd-ssd
 
-resource_pools:
-  - name: common
-    network: private
-    stemcell:
-      name: bosh-google-kvm-ubuntu-trusty-go_agent
-      version: 3312.17
-    cloud_properties:
-      zone: <%= zone_1 %>
-      machine_type: n1-standard-1
-      root_disk_size_gb: 20
-      root_disk_type: pd-standard
-      service_account: <%= cf_service_account %>
+- name: cf-common
+  cloud_properties:
+    zone: <%= zone_1 %>
+    machine_type: n1-standard-1
+    root_disk_size_gb: 20
+    root_disk_type: pd-standard
+    service_account: <%= cf_service_account %>
 
-  - name: gorouter
-    network: private
-    stemcell:
-      name: bosh-google-kvm-ubuntu-trusty-go_agent
-      version: latest
-    cloud_properties:
-      zone: <%= zone_1 %>
-      machine_type: n1-standard-1
-      root_disk_size_gb: 20
-      root_disk_type: pd-standard
-      target_pool: cf-public
-      service_account: <%= cf_service_account %>
-      tags:
-        - cf-public
+- name: gorouter
+  cloud_properties:
+    zone: <%= zone_1 %>
+    machine_type: n1-standard-1
+    root_disk_size_gb: 20
+    root_disk_type: pd-standard
+    target_pool: cf-public
+    service_account: <%= cf_service_account %>
+    tags:
+      - cf-public
 
-  - name: cells
-    network: private
-    stemcell:
-      name: bosh-google-kvm-ubuntu-trusty-go_agent
-      version: latest
-    cloud_properties:
-      zone: <%= zone_1 %>
-      machine_type: n1-standard-1
-      root_disk_size_gb: 100
-      root_disk_type: pd-standard
-      service_account: <%= cf_service_account%>
+- name: cells
+  cloud_properties:
+    zone: <%= zone_1 %>
+    machine_type: n1-standard-1
+    root_disk_size_gb: 100
+    root_disk_type: pd-standard
+    service_account: <%= cf_service_account%>
 
 disk_types:
   - name: database

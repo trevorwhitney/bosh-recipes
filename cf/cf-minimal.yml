@@ -93,39 +93,247 @@ update:
   max_in_flight: 1
   serial: false
 
-jobs:
+instance_groups:
   - name: consul-etcd
-    templates:
+    instances: 1
+    vm_type: cf-common
+    stemcell: trusty
+    persistent_disk_type: consul-etcd
+    networks:
+      - name: private
+        default: [dns, gateway]
+    jobs:
       - name: consul_agent
         release: cf
+        properties:
+          consul:
+            agent:
+              mode: server
       - name: metron_agent
         release: cf
       - name: etcd
         release: cf
+        properties:
+          etcd:
+            peer_require_ssl: false
+            require_ssl: false
       - name: etcd_metrics_server
         release: cf
+
+  - name: diego
     instances: 1
-    resource_pool: common
-    persistent_disk_pool: consul-etcd
+    vm_type: cf-common
+    stemcell: trusty
+    persistent_disk_type: diego
     networks:
       - name: private
         default: [dns, gateway]
-    properties:
-      consul:
-        agent:
-          mode: server
-      etcd:
-        peer_require_ssl: false
-        require_ssl: false
-
-  - name: diego
-    templates:
+    jobs:
       - name: etcd
         release: etcd
+        properties:
+          etcd:
+            machines:
+              - etcd.service.cf.internal
+            cluster:
+              - name: diego_database
+                instances: 1
+            ca_cert: &etcd_ca_cert |
+              -----BEGIN CERTIFICATE-----
+              MIIC+zCCAeOgAwIBAgIBADANBgkqhkiG9w0BAQUFADAfMQswCQYDVQQGEwJVUzEQ
+              MA4GA1UECgwHUGl2b3RhbDAeFw0xNTExMTgyMDI3MTZaFw0xOTExMTkxOTQ3MTZa
+              MB8xCzAJBgNVBAYTAlVTMRAwDgYDVQQKDAdQaXZvdGFsMIIBIjANBgkqhkiG9w0B
+              AQEFAAOCAQ8AMIIBCgKCAQEAwAI/I5GhhpWpJdSUM5rrOWpoKvL9ylINZOxs1kcm
+              2g35sipVE/+Vg+8tb3A7sOKLTa/+/yWNaY3o1sv+eIxjsHtIt7Tj1gkFZWpHZ6RX
+              jkzyrPCTqaMCrcOjarRRdsI5ExA4CX8qsFFQrYv5Xrv0o0XfctXwAVkc68NxyHov
+              v0x0h2ULvp1iff5QyT183LDjOUiiK3gqSrj6BpQy6yp/e/X/aZatQEjvaLuWqmU3
+              Zv6WLMA36vPVr4JoZxu9beD4QW+5PBsmGz9yrpaB7jOnFwhU0zvtv/vSZxdrpLmY
+              b4ZwXHMR2oY045OdJWI6bwXuOSofPj95aItjKVn5Swuy3QIDAQABo0IwQDAdBgNV
+              HQ4EFgQUXMQUYHcIWzZ6aUtbc4Yv/4xGfjswDwYDVR0TAQH/BAUwAwEB/zAOBgNV
+              HQ8BAf8EBAMCAQYwDQYJKoZIhvcNAQEFBQADggEBAEhU5Gl+ywoJPRyEvXcrlGdS
+              fbvzIQyLS6C6GnXpDTqOLIXtTqrUJkqVH6GXBQcBShtXzfvW5Rua4HDEKj6wPF4j
+              5QziIE0UrdJdFMupA3cPE449gITGFG20/O3xXGmeWzIijbFgKOEYyQIkExR3lcqb
+              czPN1MMNB6pI+HZVk0sn2QPD3p5kTnJRF0/wvq1rUbQ1ddW1BroCDywTecAgGK1X
+              k2OIFEg0Js7aX9/M/jLnNjTdjc5RUE45b0chPQJ9lv2Ub4jqItqtrZhy77a0e5Pb
+              ucAbKSizVP/2rml1JzLmL6V4jJtI6RWrUHuCIQDCFBvqN6cHqoQW8x++UuuPe44=
+              -----END CERTIFICATE-----
+            server_cert: &etcd_server_cert |
+              -----BEGIN CERTIFICATE-----
+              MIIDgjCCAmqgAwIBAgIUM0sWbTuPAXAjWADfVZyGdLbHkw0wDQYJKoZIhvcNAQEF
+              BQAwHzELMAkGA1UEBhMCVVMxEDAOBgNVBAoMB1Bpdm90YWwwHhcNMTUxMTE4MjA0
+              NTA4WhcNMTcxMTE3MjA0NTA4WjBCMQswCQYDVQQGEwJVUzEQMA4GA1UECgwHUGl2
+              b3RhbDEhMB8GA1UEAwwYZXRjZC5zZXJ2aWNlLmNmLmludGVybmFsMIIBIjANBgkq
+              hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoK5LvNzQSCSKYlCtLOD/Ju67Xd6kRhiQ
+              a1Up0Lg62j5HnzLCyTIpItj6w5hiIGgNhBwQvMEid8SnPAb8IT9NARKbDyNXPmg+
+              hhfLoW2XTrZwnAP+ccocGcNiFAC/OPEsZUQ1XzY/8K+uAlhfp3Y7hWMNgpaQZlIw
+              wPRs8SNfM0MxEYPttfQhMpkSAnLoKp0n/1iSKzzZmxziXThEDx0Ach3xeaGGjXWl
+              r32jHTDfi7mEl+NqkhWQZu12/KI+jCTjYmQyny51EAYsXInhZET2uMboQzpNtuXi
+              INHo+0h/gKbHi3RFwlXw4FbcoQ7HeAz0s32NV658sJLDJd+w5r/r3QIDAQABo4GS
+              MIGPMA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUC7pemq7IcM9rRqjuIUcK6mQg
+              yBIwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMD8GA1UdEQQ4MDaCGGV0
+              Y2Quc2VydmljZS5jZi5pbnRlcm5hbIIaKi5ldGNkLnNlcnZpY2UuY2YuaW50ZXJu
+              YWwwDQYJKoZIhvcNAQEFBQADggEBAD/bFCLpiH5zX9dcw4/No/Nmpootisw3TJlM
+              MbV5h5OYb+5rft68j6LM+8gl7YPKol/1yR6z0uqh/Sn3EfkjXPEtL98LDDANSJMO
+              8WCmaqnxFnqkZXkel75owrcXdAHIYBU65+v8XVhLdEh2eVcTG2PLBqdMqEr6zBGi
+              NXl0cHpcu/icjA9NWUIJmliCk+jM4/ZLexZwUVnYXvaz8SwSxvpxb0rU4Si4pZQS
+              dY8iQch9cK1rjICFQibQMz7o0rYtZpQx7OxoqK1hbWgyjFIRgQ8xGH8zqs+T2jYO
+              ehq9BZC6Uz/XDuhiNuWhZzhqfYG9iEI8FDYnYR1PZbDAB8aPOps=
+              -----END CERTIFICATE-----
+            server_key: &etcd_server_key |
+              -----BEGIN RSA PRIVATE KEY-----
+              MIIEogIBAAKCAQEAoK5LvNzQSCSKYlCtLOD/Ju67Xd6kRhiQa1Up0Lg62j5HnzLC
+              yTIpItj6w5hiIGgNhBwQvMEid8SnPAb8IT9NARKbDyNXPmg+hhfLoW2XTrZwnAP+
+              ccocGcNiFAC/OPEsZUQ1XzY/8K+uAlhfp3Y7hWMNgpaQZlIwwPRs8SNfM0MxEYPt
+              tfQhMpkSAnLoKp0n/1iSKzzZmxziXThEDx0Ach3xeaGGjXWlr32jHTDfi7mEl+Nq
+              khWQZu12/KI+jCTjYmQyny51EAYsXInhZET2uMboQzpNtuXiINHo+0h/gKbHi3RF
+              wlXw4FbcoQ7HeAz0s32NV658sJLDJd+w5r/r3QIDAQABAoIBAGPUpr3Ku6V2/nuj
+              AFVX3W9E+CiUQaBDdscY/IfvTrF17G3ezeLPRXufL/4CWUUlIPCpt0RvAolDJ1xG
+              QrQtbhxygOBg5r2haudJNX0wZ8fB1ik42ge8uMTQ/cjLxgMM5LZuMHLdc9CIdiaC
+              3btf3A89wZEXFtRb0Gqx8lXH0kg4RLhk6zTnQ2JoeboiYq5DDY2O/gxNkbNSXCVA
+              pLxqFCxt7pU5QscPtbmGk9Y2stRMjyp2CGIev/643yi0Q/SQqbn2SKZv32jIWmwx
+              jCkZeQPbozjS/5bi555UZpEcHAMK076zYF7+lyvSkxP3Mp5zKLiMFIuX/5vU7Cae
+              yzR8ZQECgYEA0tAz09jQq90CLb+TlKY4gBTvlM4JGZ1K5ci5qv5l3g8pM8XUgmQN
+              6/42o3jTgmNvGKPF+aGOiEA1OXTWa7DG4YP1Slh8AYevJw+HnlKz4NKBlLkHwEhN
+              hAo5rHyHFHJuZJQpquiBSkBpce6nNeTjJPesi6Y+oJXKvLXc0k6M6r0CgYEAwx82
+              tBawJnhvBIkclUOZe0+RHeK3598dC8J5R3Bc5cM/0NVJg6m8PquhLEArXKkksIo4
+              J/7BIw0M1A9ZxUvtqq/4nfuTMUy20RBTU4MAcVgNLOIw49sYe9s+cApM/5NqGbLU
+              dnIsu5Vd2bZAJQK5TUowqjp32XcPjD5TAa5rp6ECgYBrHPSoeCqWmGXp/sQqrEZa
+              9chBkGpZRG1w0YtdEYOKz6M8thDi65mTRghXCSZWwtUI7PXDf83e9tjUR8RG1XxH
+              y3ePfeQMFvfs3dwnmpfg7LSAb387uMECDPv+4wrzXa0vl4SQXTCMHKw3Am6dWJ39
+              A4b9McvyZgmr1q/Lf7Pj9QKBgBMU1VutMFLCylCOPA5YywSlFlLu3f898XA593RG
+              B7+sZWw9v2+xxKf4Ts2uBM+N9vmQuscmgaq01wFR8vx5XWeox85jUNSsZOBzEUME
+              d6Gd88Pk5tURkwZhvWxlhXwk5WZX97ERn1BE3iWxTfqQlqB5VeL/zsKkgw+69JEg
+              hoShAoGAcginf7QsysxQ9J6of4djDX2UskLD6gJ82tYDIRmoYU7i4nhiAV5h97VC
+              gZwLkJshvJobLOvWYHQz22hlvBCR+2f0nTV65qsQGS24p3fEptTQGtjR7MdK6hAt
+              zcG+1F1Srm4249/fsSWBuNhc/fUZc44vmsU0/WAhPAbqEdHvlqI=
+              -----END RSA PRIVATE KEY-----
+            client_cert: &etcd_client_cert |
+              -----BEGIN CERTIFICATE-----
+              MIIDNzCCAh+gAwIBAgIUSiZNDq8jWIzmpucRnoryqSz2PTswDQYJKoZIhvcNAQEF
+              BQAwHzELMAkGA1UEBhMCVVMxEDAOBgNVBAoMB1Bpdm90YWwwHhcNMTUxMTE4MjA0
+              NTA4WhcNMTcxMTE3MjA0NTA4WjA6MQswCQYDVQQGEwJVUzEQMA4GA1UECgwHUGl2
+              b3RhbDEZMBcGA1UEAwwQZXRjZF9jbGllbnRfY2VydDCCASIwDQYJKoZIhvcNAQEB
+              BQADggEPADCCAQoCggEBANV/dP1u7KViVLefJxAbOkl4dXGAFfJRfKqQpg4CyA3w
+              UHOA99H4cAcwbXoEOaDfqI8ShE0ST0IgenkkvkT6w+p4f4NCMG/OoXxeDaZE6dCK
+              gsq/AMI67tFpt2YXN6P19Izzs9BQpk9U/v8SZwoJXMVj0Dba9zD8ulG8LE7it4PF
+              a+YW3rIDdzwQHMZtgh0tzcvjDFc0suvQSsqakh+Ng1XPgVVKKe4T79BQOOkXgFNL
+              xbIqsnGWJtAwd3D41b0EevSjQTlgdoJKvY/X5wGG1x1l4qKEuZmqgiDH4zRLdTGG
+              /IXLOIr0Zcs+CVBLME41uMFbcjzSMCd93+mqOpRxMxcCAwEAAaNQME4wDgYDVR0P
+              AQH/BAQDAgeAMB0GA1UdDgQWBBRFAsRZSfanZpJK+ScqtNAHveXxPTAdBgNVHSUE
+              FjAUBggrBgEFBQcDAgYIKwYBBQUHAwEwDQYJKoZIhvcNAQEFBQADggEBAFLr414b
+              Pxb0VYCz+OmqaZT5gvZ7uG4wBlmTdMqNIBmU2hZJmtYA/bnLXtzRYlyHlBES/cEK
+              K4mwl8xXWE8131qaF1ua6ZOmkWJGJYl8PIW/V3hL+9q/1GD7RP9LgrQEF9Mdb4PW
+              i6XRdEB5Z2X97JMOP4XJ1n+trqZaAYEboFvh/ICP06C4p3B+pM7btTyJ1qv1T/Gh
+              WMV2qiVP9yIfI8UbU2MaaXlF6bW5xWgmgt+6NIPyyXh5DQg21smBKcybAjGNVOyC
+              ZxT9QWKgoJVvpyFlYq5rg05MZXtKzQtozVECAa3F+5pH2WZjjm12g3Em3pJjZ6k1
+              sO4Xc1kAHbgvjQ4=
+              -----END CERTIFICATE-----
+            client_key: &etcd_client_key |
+              -----BEGIN RSA PRIVATE KEY-----
+              MIIEpQIBAAKCAQEA1X90/W7spWJUt58nEBs6SXh1cYAV8lF8qpCmDgLIDfBQc4D3
+              0fhwBzBtegQ5oN+ojxKETRJPQiB6eSS+RPrD6nh/g0Iwb86hfF4NpkTp0IqCyr8A
+              wjru0Wm3Zhc3o/X0jPOz0FCmT1T+/xJnCglcxWPQNtr3MPy6UbwsTuK3g8Vr5hbe
+              sgN3PBAcxm2CHS3Ny+MMVzSy69BKypqSH42DVc+BVUop7hPv0FA46ReAU0vFsiqy
+              cZYm0DB3cPjVvQR69KNBOWB2gkq9j9fnAYbXHWXiooS5maqCIMfjNEt1MYb8hcs4
+              ivRlyz4JUEswTjW4wVtyPNIwJ33f6ao6lHEzFwIDAQABAoIBAQCp+bTZxQNxVI0g
+              N/ywrQzFy7qtJ43Rg6DeZxVdmEdQGaDjpK0pJUOD5cFzYIPFGewoJFTiy44Alr0L
+              T/6QCpoKRe83QG4xxe/5hSQW2UzR9ETXSCRBfwv9+83A4QEyb7JIugnR8zPFe2Ud
+              DLiuW+/ZU3NFCSW+gaeRRWB9WbFDnWhL3u0xpdPYyVDoItKqH+6KHMkZ8vpfmsbh
+              8QZOPb7jcGU3kAEbIG9cg+hl/vZI8el3Mni5tZQoCK875+mmezsU54nAHyBOmuDR
+              u/axX8lTnI6AMJTpC9yxtDcEKf+Jpf0GQz6G90mT8oMhyQAiCLxWWJq/rD5aM0uU
+              xt3DS6exAoGBAPcIaN0mKTgKAjYUcKhDrbxb1c9Qk8pM4UtQSCujINTLJi9unJZv
+              am6S9SNYfNBMsPmgczNNAQlscZtstk6ZAUNAdMzrUxZuWIopbznjSoD1SjVEoo1X
+              yvbu+YGN9TNzSjofLDczbAucFuaQ+jKPHzfhdECd49nRhGgcEFd/avO/AoGBAN0/
+              ayWDGrbW41wGLXMZvIz4YPHs3+UosvEHqQpzb5DtBKTc+2DQ8HznFe3ltB2wTPDV
+              B7Yc8RckC/3Dw8xh5vWBn4S/cbGiDbBqmZm8e81PnCPrtjJQSMvtL6CP9rsq+Emf
+              0Dyia2gqjN049uQSOiL4mOC2m/WFYvOEXclDlDapAoGAexqKv2Ir+kwqi+6lsYSA
+              iLQvGW/rJk4nm5N3U5+oVcKi1dJGYEVHgbDkTmfjUx5UtyE5J2CBWsPa3XxQYVyo
+              H254hkHjFvOIVdmOHwfgceFKyL7aTptofqPaXLB0d95FKC+uphePCT4Qv3eR5y4h
+              fYRxnV3RVROu6v7JOgE6OBsCgYEAhfQCrEiPYQoDx9CZrel0JimvkGnpOPaGOLZ5
+              mzE+6BEI0cRVkk2OfSDwPwPnJF58hweDzrgBJBCYDgF7x3+y9QuRCC9c576E6T3x
+              V4otrqW3lGv++MFxAb7OKjlfmfyvLOxMiJmRzBSPCtWVbYq3ljrLXKpTDLjAq02F
+              9vgqgVkCgYEAiBclzilLmCLVyI8P2avm+QFPsGh2A/012fE1Utubf+3pGE6nBi/2
+              dC9GhjOReVMVqH7PIgaeNQtGVVG4VxRBW8aiHaV63xYTN7Cxeks4GSIGNBKZANuJ
+              u/wqjmT4rRYCre4rXUNBRWVvADBotzCoJGfl4p3ZttgcvDGKncdHfQo=
+              -----END RSA PRIVATE KEY-----
+            peer_ca_cert: &etcd_peer_ca_cert |
+              -----BEGIN CERTIFICATE-----
+              MIIC+zCCAeOgAwIBAgIBADANBgkqhkiG9w0BAQUFADAfMQswCQYDVQQGEwJVUzEQ
+              MA4GA1UECgwHUGl2b3RhbDAeFw0xNTExMTgyMDI3MTZaFw0xOTExMTkxOTQ3MTZa
+              MB8xCzAJBgNVBAYTAlVTMRAwDgYDVQQKDAdQaXZvdGFsMIIBIjANBgkqhkiG9w0B
+              AQEFAAOCAQ8AMIIBCgKCAQEAwAI/I5GhhpWpJdSUM5rrOWpoKvL9ylINZOxs1kcm
+              2g35sipVE/+Vg+8tb3A7sOKLTa/+/yWNaY3o1sv+eIxjsHtIt7Tj1gkFZWpHZ6RX
+              jkzyrPCTqaMCrcOjarRRdsI5ExA4CX8qsFFQrYv5Xrv0o0XfctXwAVkc68NxyHov
+              v0x0h2ULvp1iff5QyT183LDjOUiiK3gqSrj6BpQy6yp/e/X/aZatQEjvaLuWqmU3
+              Zv6WLMA36vPVr4JoZxu9beD4QW+5PBsmGz9yrpaB7jOnFwhU0zvtv/vSZxdrpLmY
+              b4ZwXHMR2oY045OdJWI6bwXuOSofPj95aItjKVn5Swuy3QIDAQABo0IwQDAdBgNV
+              HQ4EFgQUXMQUYHcIWzZ6aUtbc4Yv/4xGfjswDwYDVR0TAQH/BAUwAwEB/zAOBgNV
+              HQ8BAf8EBAMCAQYwDQYJKoZIhvcNAQEFBQADggEBAEhU5Gl+ywoJPRyEvXcrlGdS
+              fbvzIQyLS6C6GnXpDTqOLIXtTqrUJkqVH6GXBQcBShtXzfvW5Rua4HDEKj6wPF4j
+              5QziIE0UrdJdFMupA3cPE449gITGFG20/O3xXGmeWzIijbFgKOEYyQIkExR3lcqb
+              czPN1MMNB6pI+HZVk0sn2QPD3p5kTnJRF0/wvq1rUbQ1ddW1BroCDywTecAgGK1X
+              k2OIFEg0Js7aX9/M/jLnNjTdjc5RUE45b0chPQJ9lv2Ub4jqItqtrZhy77a0e5Pb
+              ucAbKSizVP/2rml1JzLmL6V4jJtI6RWrUHuCIQDCFBvqN6cHqoQW8x++UuuPe44=
+              -----END CERTIFICATE-----
+            peer_cert: &etcd_peer_cert |
+              -----BEGIN CERTIFICATE-----
+              MIIDgjCCAmqgAwIBAgIUQWAM/+Fzbw9eWshdyUorgAD5mOMwDQYJKoZIhvcNAQEF
+              BQAwHzELMAkGA1UEBhMCVVMxEDAOBgNVBAoMB1Bpdm90YWwwHhcNMTUxMTE4MjA0
+              NTA4WhcNMTcxMTE3MjA0NTA4WjBCMQswCQYDVQQGEwJVUzEQMA4GA1UECgwHUGl2
+              b3RhbDEhMB8GA1UEAwwYZXRjZC5zZXJ2aWNlLmNmLmludGVybmFsMIIBIjANBgkq
+              hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0JMW2C6W9q+fa/2tHMFUN1ToAZ9RwBRP
+              JCXARXFj52pF8jjqzudT6fb81Yw0ak45hAbDuOreaHShtLLFqzkIhnmh2WJllB2l
+              f7x1Mbs4S8tfkNgCVb526LLpAYFfLJ6K4KS8Dk8L/8d291Wr0/kVlB9ZuFcXE4Ug
+              j1U+Ali08PfKduVFPOukkzJ2kS70s0krVSTrcXBRGmUvthBLf+LkXTPpmxGDnQcx
+              Z4A5CMtE2uEbRrlQPmC6CWWGsjggmJ23lUcwLQrH/TiEfxrNV0A5oIg0AOP5ps4F
+              PpUrFrjsPHneJds/3inmU9UIu1eLbkTGHGw+LXG/JP0Lng15frpruwIDAQABo4GS
+              MIGPMA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUP2awOWj18GEPeR4lmqzB3IbZ
+              J5cwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMD8GA1UdEQQ4MDaCGGV0
+              Y2Quc2VydmljZS5jZi5pbnRlcm5hbIIaKi5ldGNkLnNlcnZpY2UuY2YuaW50ZXJu
+              YWwwDQYJKoZIhvcNAQEFBQADggEBAAHZ32ebyGU1GjO8pPRIcHi2RbltX345rJ2o
+              QYBpbKf+k/wcUBgMqI+M0qqjN+LLm86hvjba7uGAls3rB1tQLPGIawKVNy+HtxU7
+              2n7ah4Sv/5dragOsv1MtyfHp63NqfB7GFL+CJfuHoVDFF/6s3PiJEtLX6vJVvXZZ
+              0kbDmOsDQHPPdVCu6wXfArXlIbo5gP3kerzkaHNftn46I8djCebPuaJu0aQ+0Sj7
+              rYhaet+HlU7w77LUWlrZsCQF5ftApOFcZkEwvYLcJo1gqER1GO75ViG8+QVfS0zC
+              hQVgyqFWYlnsWCrZM4qZqVR9zbuaQ8K+qIhVuWX33L6A2XinlC4=
+              -----END CERTIFICATE-----
+            peer_key: &etcd_peer_key |
+              -----BEGIN RSA PRIVATE KEY-----
+              MIIEpAIBAAKCAQEA0JMW2C6W9q+fa/2tHMFUN1ToAZ9RwBRPJCXARXFj52pF8jjq
+              zudT6fb81Yw0ak45hAbDuOreaHShtLLFqzkIhnmh2WJllB2lf7x1Mbs4S8tfkNgC
+              Vb526LLpAYFfLJ6K4KS8Dk8L/8d291Wr0/kVlB9ZuFcXE4Ugj1U+Ali08PfKduVF
+              POukkzJ2kS70s0krVSTrcXBRGmUvthBLf+LkXTPpmxGDnQcxZ4A5CMtE2uEbRrlQ
+              PmC6CWWGsjggmJ23lUcwLQrH/TiEfxrNV0A5oIg0AOP5ps4FPpUrFrjsPHneJds/
+              3inmU9UIu1eLbkTGHGw+LXG/JP0Lng15frpruwIDAQABAoIBAG62FMMtf75znFiz
+              L4d661vverMZwUgGv7d9PmDd/lyg4X3gTmsDCVzAWJZ1tIDVAtycxplKOkIR3p/O
+              4POw82CGAa4k96w2TFnQTBjYutoompKExkCDOBTumpXM+RrzEN6LMrMZrFHZq8E/
+              vVRn+9dDCNm7iKk42f6bDa4rLehVeO7zhGpQzozBoqMlCGZ5I1IDakPGmzpk5B2H
+              y2fml0tMVEd7hUEFKNE2t0y8fVW8CiPmR2htEBijSSw+Z3EQeozZEzmJNCEx8Mtb
+              bUfCgbvmO0tmAjgWIbUBB+vf6sr2vJapBdbkd6/Q30b2IB0Q9faSkOjCA9ycu7N/
+              3CPjbiECgYEA+9vfTykwlhvYY8uGvPigBmvnby7nCQWC186D0Gjt3SkYxY7Z0+pW
+              v8YnYFiPDZ7FMHf808osgNXaWvxQdWWN2sAd5TrwYPa68Gzw/v/Lq2WzR1kdkLGL
+              WlEbHiuy5ZTsNNy2/i17FqgdoZglv52DqPzWOZMzXVelpLy91UQ8APECgYEA1AEG
+              KECgcnUGZ7gvYLNi0KfuLLT6Zdd255Cu1Vu4ZxXvxQG3tOd8znRwJho+guJoFaNH
+              ItofqIn3O5SG/rTtlj/ZN9oO0lygwT0d18RobJiK2p0YRItvNNBFQc0Q4hDqqUDb
+              sUbBDrTcEKmJ66RbRXggX1C96QF2GgNOTgiWd2sCgYEA+oGSVmlQsy1VCMWp6ZGd
+              kWWIF1VeZOG/Z6k4AHYtiNlUk0Nns9kUmcCc776F4vU1iuT9ayZfJ3INsovd9zag
+              ZqDJ23PJHZirDXI+LlP8nykTrXac6os9YQLk5xht4t5CJr4VoTFZiYqDlnP/r9wa
+              1V1OMowP/dqsnfNBGbu5tvECgYA4VQVT0MhRYXMQQEqmgUPyeYy56GTYhsYbhcBP
+              BQ4cpiGN0YUE1rW9Dgd2uGZ/1LUfesE+K4NZ/z7oX/D24RB4agLH6nMhxmcYsaqq
+              WI/+uxG6QR/fpsUn3WdpspmX2DLiQk+d7VUDGV+YNdRl/sgZz2+apBOyRCcjhlla
+              NsH0fQKBgQCG8cENarNWXQW/oaYvSKzK226ckbtYdAS7im5rzYqxcuDKvI2ocMtp
+              EjNJTCQK8xvxW0nnefLYLbUD+ZA8L9DrEf+Sgr3Zwp+m58nL9XlGHeZE2wymwqCB
+              ETMxxm/r9PEu5JFFIl3c56/L9REZYDyhpwR5tELQCFxGuKT5Wxlfnw==
+              -----END RSA PRIVATE KEY-----
       - name: bbs
         release: diego
       - name: consul_agent
         release: cf
+        properties:
+          consul:
+            agent:
+              services:
+                etcd: {}
       - name: metron_agent
         release: cf
       - name: auctioneer
@@ -144,213 +352,15 @@ jobs:
         release: diego
       - name: tps
         release: diego
+
+  - name: router
     instances: 1
-    resource_pool: common
-    persistent_disk_pool: diego
+    vm_type: gorouter
+    stemcell: trusty
     networks:
       - name: private
         default: [dns, gateway]
-    properties:
-      etcd:
-        machines:
-          - etcd.service.cf.internal
-        cluster:
-          - name: diego_database
-            instances: 1
-        ca_cert: &etcd_ca_cert |
-          -----BEGIN CERTIFICATE-----
-          MIIC+zCCAeOgAwIBAgIBADANBgkqhkiG9w0BAQUFADAfMQswCQYDVQQGEwJVUzEQ
-          MA4GA1UECgwHUGl2b3RhbDAeFw0xNTExMTgyMDI3MTZaFw0xOTExMTkxOTQ3MTZa
-          MB8xCzAJBgNVBAYTAlVTMRAwDgYDVQQKDAdQaXZvdGFsMIIBIjANBgkqhkiG9w0B
-          AQEFAAOCAQ8AMIIBCgKCAQEAwAI/I5GhhpWpJdSUM5rrOWpoKvL9ylINZOxs1kcm
-          2g35sipVE/+Vg+8tb3A7sOKLTa/+/yWNaY3o1sv+eIxjsHtIt7Tj1gkFZWpHZ6RX
-          jkzyrPCTqaMCrcOjarRRdsI5ExA4CX8qsFFQrYv5Xrv0o0XfctXwAVkc68NxyHov
-          v0x0h2ULvp1iff5QyT183LDjOUiiK3gqSrj6BpQy6yp/e/X/aZatQEjvaLuWqmU3
-          Zv6WLMA36vPVr4JoZxu9beD4QW+5PBsmGz9yrpaB7jOnFwhU0zvtv/vSZxdrpLmY
-          b4ZwXHMR2oY045OdJWI6bwXuOSofPj95aItjKVn5Swuy3QIDAQABo0IwQDAdBgNV
-          HQ4EFgQUXMQUYHcIWzZ6aUtbc4Yv/4xGfjswDwYDVR0TAQH/BAUwAwEB/zAOBgNV
-          HQ8BAf8EBAMCAQYwDQYJKoZIhvcNAQEFBQADggEBAEhU5Gl+ywoJPRyEvXcrlGdS
-          fbvzIQyLS6C6GnXpDTqOLIXtTqrUJkqVH6GXBQcBShtXzfvW5Rua4HDEKj6wPF4j
-          5QziIE0UrdJdFMupA3cPE449gITGFG20/O3xXGmeWzIijbFgKOEYyQIkExR3lcqb
-          czPN1MMNB6pI+HZVk0sn2QPD3p5kTnJRF0/wvq1rUbQ1ddW1BroCDywTecAgGK1X
-          k2OIFEg0Js7aX9/M/jLnNjTdjc5RUE45b0chPQJ9lv2Ub4jqItqtrZhy77a0e5Pb
-          ucAbKSizVP/2rml1JzLmL6V4jJtI6RWrUHuCIQDCFBvqN6cHqoQW8x++UuuPe44=
-          -----END CERTIFICATE-----
-        server_cert: &etcd_server_cert |
-          -----BEGIN CERTIFICATE-----
-          MIIDgjCCAmqgAwIBAgIUM0sWbTuPAXAjWADfVZyGdLbHkw0wDQYJKoZIhvcNAQEF
-          BQAwHzELMAkGA1UEBhMCVVMxEDAOBgNVBAoMB1Bpdm90YWwwHhcNMTUxMTE4MjA0
-          NTA4WhcNMTcxMTE3MjA0NTA4WjBCMQswCQYDVQQGEwJVUzEQMA4GA1UECgwHUGl2
-          b3RhbDEhMB8GA1UEAwwYZXRjZC5zZXJ2aWNlLmNmLmludGVybmFsMIIBIjANBgkq
-          hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoK5LvNzQSCSKYlCtLOD/Ju67Xd6kRhiQ
-          a1Up0Lg62j5HnzLCyTIpItj6w5hiIGgNhBwQvMEid8SnPAb8IT9NARKbDyNXPmg+
-          hhfLoW2XTrZwnAP+ccocGcNiFAC/OPEsZUQ1XzY/8K+uAlhfp3Y7hWMNgpaQZlIw
-          wPRs8SNfM0MxEYPttfQhMpkSAnLoKp0n/1iSKzzZmxziXThEDx0Ach3xeaGGjXWl
-          r32jHTDfi7mEl+NqkhWQZu12/KI+jCTjYmQyny51EAYsXInhZET2uMboQzpNtuXi
-          INHo+0h/gKbHi3RFwlXw4FbcoQ7HeAz0s32NV658sJLDJd+w5r/r3QIDAQABo4GS
-          MIGPMA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUC7pemq7IcM9rRqjuIUcK6mQg
-          yBIwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMD8GA1UdEQQ4MDaCGGV0
-          Y2Quc2VydmljZS5jZi5pbnRlcm5hbIIaKi5ldGNkLnNlcnZpY2UuY2YuaW50ZXJu
-          YWwwDQYJKoZIhvcNAQEFBQADggEBAD/bFCLpiH5zX9dcw4/No/Nmpootisw3TJlM
-          MbV5h5OYb+5rft68j6LM+8gl7YPKol/1yR6z0uqh/Sn3EfkjXPEtL98LDDANSJMO
-          8WCmaqnxFnqkZXkel75owrcXdAHIYBU65+v8XVhLdEh2eVcTG2PLBqdMqEr6zBGi
-          NXl0cHpcu/icjA9NWUIJmliCk+jM4/ZLexZwUVnYXvaz8SwSxvpxb0rU4Si4pZQS
-          dY8iQch9cK1rjICFQibQMz7o0rYtZpQx7OxoqK1hbWgyjFIRgQ8xGH8zqs+T2jYO
-          ehq9BZC6Uz/XDuhiNuWhZzhqfYG9iEI8FDYnYR1PZbDAB8aPOps=
-          -----END CERTIFICATE-----
-        server_key: &etcd_server_key |
-          -----BEGIN RSA PRIVATE KEY-----
-          MIIEogIBAAKCAQEAoK5LvNzQSCSKYlCtLOD/Ju67Xd6kRhiQa1Up0Lg62j5HnzLC
-          yTIpItj6w5hiIGgNhBwQvMEid8SnPAb8IT9NARKbDyNXPmg+hhfLoW2XTrZwnAP+
-          ccocGcNiFAC/OPEsZUQ1XzY/8K+uAlhfp3Y7hWMNgpaQZlIwwPRs8SNfM0MxEYPt
-          tfQhMpkSAnLoKp0n/1iSKzzZmxziXThEDx0Ach3xeaGGjXWlr32jHTDfi7mEl+Nq
-          khWQZu12/KI+jCTjYmQyny51EAYsXInhZET2uMboQzpNtuXiINHo+0h/gKbHi3RF
-          wlXw4FbcoQ7HeAz0s32NV658sJLDJd+w5r/r3QIDAQABAoIBAGPUpr3Ku6V2/nuj
-          AFVX3W9E+CiUQaBDdscY/IfvTrF17G3ezeLPRXufL/4CWUUlIPCpt0RvAolDJ1xG
-          QrQtbhxygOBg5r2haudJNX0wZ8fB1ik42ge8uMTQ/cjLxgMM5LZuMHLdc9CIdiaC
-          3btf3A89wZEXFtRb0Gqx8lXH0kg4RLhk6zTnQ2JoeboiYq5DDY2O/gxNkbNSXCVA
-          pLxqFCxt7pU5QscPtbmGk9Y2stRMjyp2CGIev/643yi0Q/SQqbn2SKZv32jIWmwx
-          jCkZeQPbozjS/5bi555UZpEcHAMK076zYF7+lyvSkxP3Mp5zKLiMFIuX/5vU7Cae
-          yzR8ZQECgYEA0tAz09jQq90CLb+TlKY4gBTvlM4JGZ1K5ci5qv5l3g8pM8XUgmQN
-          6/42o3jTgmNvGKPF+aGOiEA1OXTWa7DG4YP1Slh8AYevJw+HnlKz4NKBlLkHwEhN
-          hAo5rHyHFHJuZJQpquiBSkBpce6nNeTjJPesi6Y+oJXKvLXc0k6M6r0CgYEAwx82
-          tBawJnhvBIkclUOZe0+RHeK3598dC8J5R3Bc5cM/0NVJg6m8PquhLEArXKkksIo4
-          J/7BIw0M1A9ZxUvtqq/4nfuTMUy20RBTU4MAcVgNLOIw49sYe9s+cApM/5NqGbLU
-          dnIsu5Vd2bZAJQK5TUowqjp32XcPjD5TAa5rp6ECgYBrHPSoeCqWmGXp/sQqrEZa
-          9chBkGpZRG1w0YtdEYOKz6M8thDi65mTRghXCSZWwtUI7PXDf83e9tjUR8RG1XxH
-          y3ePfeQMFvfs3dwnmpfg7LSAb387uMECDPv+4wrzXa0vl4SQXTCMHKw3Am6dWJ39
-          A4b9McvyZgmr1q/Lf7Pj9QKBgBMU1VutMFLCylCOPA5YywSlFlLu3f898XA593RG
-          B7+sZWw9v2+xxKf4Ts2uBM+N9vmQuscmgaq01wFR8vx5XWeox85jUNSsZOBzEUME
-          d6Gd88Pk5tURkwZhvWxlhXwk5WZX97ERn1BE3iWxTfqQlqB5VeL/zsKkgw+69JEg
-          hoShAoGAcginf7QsysxQ9J6of4djDX2UskLD6gJ82tYDIRmoYU7i4nhiAV5h97VC
-          gZwLkJshvJobLOvWYHQz22hlvBCR+2f0nTV65qsQGS24p3fEptTQGtjR7MdK6hAt
-          zcG+1F1Srm4249/fsSWBuNhc/fUZc44vmsU0/WAhPAbqEdHvlqI=
-          -----END RSA PRIVATE KEY-----
-        client_cert: &etcd_client_cert |
-          -----BEGIN CERTIFICATE-----
-          MIIDNzCCAh+gAwIBAgIUSiZNDq8jWIzmpucRnoryqSz2PTswDQYJKoZIhvcNAQEF
-          BQAwHzELMAkGA1UEBhMCVVMxEDAOBgNVBAoMB1Bpdm90YWwwHhcNMTUxMTE4MjA0
-          NTA4WhcNMTcxMTE3MjA0NTA4WjA6MQswCQYDVQQGEwJVUzEQMA4GA1UECgwHUGl2
-          b3RhbDEZMBcGA1UEAwwQZXRjZF9jbGllbnRfY2VydDCCASIwDQYJKoZIhvcNAQEB
-          BQADggEPADCCAQoCggEBANV/dP1u7KViVLefJxAbOkl4dXGAFfJRfKqQpg4CyA3w
-          UHOA99H4cAcwbXoEOaDfqI8ShE0ST0IgenkkvkT6w+p4f4NCMG/OoXxeDaZE6dCK
-          gsq/AMI67tFpt2YXN6P19Izzs9BQpk9U/v8SZwoJXMVj0Dba9zD8ulG8LE7it4PF
-          a+YW3rIDdzwQHMZtgh0tzcvjDFc0suvQSsqakh+Ng1XPgVVKKe4T79BQOOkXgFNL
-          xbIqsnGWJtAwd3D41b0EevSjQTlgdoJKvY/X5wGG1x1l4qKEuZmqgiDH4zRLdTGG
-          /IXLOIr0Zcs+CVBLME41uMFbcjzSMCd93+mqOpRxMxcCAwEAAaNQME4wDgYDVR0P
-          AQH/BAQDAgeAMB0GA1UdDgQWBBRFAsRZSfanZpJK+ScqtNAHveXxPTAdBgNVHSUE
-          FjAUBggrBgEFBQcDAgYIKwYBBQUHAwEwDQYJKoZIhvcNAQEFBQADggEBAFLr414b
-          Pxb0VYCz+OmqaZT5gvZ7uG4wBlmTdMqNIBmU2hZJmtYA/bnLXtzRYlyHlBES/cEK
-          K4mwl8xXWE8131qaF1ua6ZOmkWJGJYl8PIW/V3hL+9q/1GD7RP9LgrQEF9Mdb4PW
-          i6XRdEB5Z2X97JMOP4XJ1n+trqZaAYEboFvh/ICP06C4p3B+pM7btTyJ1qv1T/Gh
-          WMV2qiVP9yIfI8UbU2MaaXlF6bW5xWgmgt+6NIPyyXh5DQg21smBKcybAjGNVOyC
-          ZxT9QWKgoJVvpyFlYq5rg05MZXtKzQtozVECAa3F+5pH2WZjjm12g3Em3pJjZ6k1
-          sO4Xc1kAHbgvjQ4=
-          -----END CERTIFICATE-----
-        client_key: &etcd_client_key |
-          -----BEGIN RSA PRIVATE KEY-----
-          MIIEpQIBAAKCAQEA1X90/W7spWJUt58nEBs6SXh1cYAV8lF8qpCmDgLIDfBQc4D3
-          0fhwBzBtegQ5oN+ojxKETRJPQiB6eSS+RPrD6nh/g0Iwb86hfF4NpkTp0IqCyr8A
-          wjru0Wm3Zhc3o/X0jPOz0FCmT1T+/xJnCglcxWPQNtr3MPy6UbwsTuK3g8Vr5hbe
-          sgN3PBAcxm2CHS3Ny+MMVzSy69BKypqSH42DVc+BVUop7hPv0FA46ReAU0vFsiqy
-          cZYm0DB3cPjVvQR69KNBOWB2gkq9j9fnAYbXHWXiooS5maqCIMfjNEt1MYb8hcs4
-          ivRlyz4JUEswTjW4wVtyPNIwJ33f6ao6lHEzFwIDAQABAoIBAQCp+bTZxQNxVI0g
-          N/ywrQzFy7qtJ43Rg6DeZxVdmEdQGaDjpK0pJUOD5cFzYIPFGewoJFTiy44Alr0L
-          T/6QCpoKRe83QG4xxe/5hSQW2UzR9ETXSCRBfwv9+83A4QEyb7JIugnR8zPFe2Ud
-          DLiuW+/ZU3NFCSW+gaeRRWB9WbFDnWhL3u0xpdPYyVDoItKqH+6KHMkZ8vpfmsbh
-          8QZOPb7jcGU3kAEbIG9cg+hl/vZI8el3Mni5tZQoCK875+mmezsU54nAHyBOmuDR
-          u/axX8lTnI6AMJTpC9yxtDcEKf+Jpf0GQz6G90mT8oMhyQAiCLxWWJq/rD5aM0uU
-          xt3DS6exAoGBAPcIaN0mKTgKAjYUcKhDrbxb1c9Qk8pM4UtQSCujINTLJi9unJZv
-          am6S9SNYfNBMsPmgczNNAQlscZtstk6ZAUNAdMzrUxZuWIopbznjSoD1SjVEoo1X
-          yvbu+YGN9TNzSjofLDczbAucFuaQ+jKPHzfhdECd49nRhGgcEFd/avO/AoGBAN0/
-          ayWDGrbW41wGLXMZvIz4YPHs3+UosvEHqQpzb5DtBKTc+2DQ8HznFe3ltB2wTPDV
-          B7Yc8RckC/3Dw8xh5vWBn4S/cbGiDbBqmZm8e81PnCPrtjJQSMvtL6CP9rsq+Emf
-          0Dyia2gqjN049uQSOiL4mOC2m/WFYvOEXclDlDapAoGAexqKv2Ir+kwqi+6lsYSA
-          iLQvGW/rJk4nm5N3U5+oVcKi1dJGYEVHgbDkTmfjUx5UtyE5J2CBWsPa3XxQYVyo
-          H254hkHjFvOIVdmOHwfgceFKyL7aTptofqPaXLB0d95FKC+uphePCT4Qv3eR5y4h
-          fYRxnV3RVROu6v7JOgE6OBsCgYEAhfQCrEiPYQoDx9CZrel0JimvkGnpOPaGOLZ5
-          mzE+6BEI0cRVkk2OfSDwPwPnJF58hweDzrgBJBCYDgF7x3+y9QuRCC9c576E6T3x
-          V4otrqW3lGv++MFxAb7OKjlfmfyvLOxMiJmRzBSPCtWVbYq3ljrLXKpTDLjAq02F
-          9vgqgVkCgYEAiBclzilLmCLVyI8P2avm+QFPsGh2A/012fE1Utubf+3pGE6nBi/2
-          dC9GhjOReVMVqH7PIgaeNQtGVVG4VxRBW8aiHaV63xYTN7Cxeks4GSIGNBKZANuJ
-          u/wqjmT4rRYCre4rXUNBRWVvADBotzCoJGfl4p3ZttgcvDGKncdHfQo=
-          -----END RSA PRIVATE KEY-----
-        peer_ca_cert: &etcd_peer_ca_cert |
-          -----BEGIN CERTIFICATE-----
-          MIIC+zCCAeOgAwIBAgIBADANBgkqhkiG9w0BAQUFADAfMQswCQYDVQQGEwJVUzEQ
-          MA4GA1UECgwHUGl2b3RhbDAeFw0xNTExMTgyMDI3MTZaFw0xOTExMTkxOTQ3MTZa
-          MB8xCzAJBgNVBAYTAlVTMRAwDgYDVQQKDAdQaXZvdGFsMIIBIjANBgkqhkiG9w0B
-          AQEFAAOCAQ8AMIIBCgKCAQEAwAI/I5GhhpWpJdSUM5rrOWpoKvL9ylINZOxs1kcm
-          2g35sipVE/+Vg+8tb3A7sOKLTa/+/yWNaY3o1sv+eIxjsHtIt7Tj1gkFZWpHZ6RX
-          jkzyrPCTqaMCrcOjarRRdsI5ExA4CX8qsFFQrYv5Xrv0o0XfctXwAVkc68NxyHov
-          v0x0h2ULvp1iff5QyT183LDjOUiiK3gqSrj6BpQy6yp/e/X/aZatQEjvaLuWqmU3
-          Zv6WLMA36vPVr4JoZxu9beD4QW+5PBsmGz9yrpaB7jOnFwhU0zvtv/vSZxdrpLmY
-          b4ZwXHMR2oY045OdJWI6bwXuOSofPj95aItjKVn5Swuy3QIDAQABo0IwQDAdBgNV
-          HQ4EFgQUXMQUYHcIWzZ6aUtbc4Yv/4xGfjswDwYDVR0TAQH/BAUwAwEB/zAOBgNV
-          HQ8BAf8EBAMCAQYwDQYJKoZIhvcNAQEFBQADggEBAEhU5Gl+ywoJPRyEvXcrlGdS
-          fbvzIQyLS6C6GnXpDTqOLIXtTqrUJkqVH6GXBQcBShtXzfvW5Rua4HDEKj6wPF4j
-          5QziIE0UrdJdFMupA3cPE449gITGFG20/O3xXGmeWzIijbFgKOEYyQIkExR3lcqb
-          czPN1MMNB6pI+HZVk0sn2QPD3p5kTnJRF0/wvq1rUbQ1ddW1BroCDywTecAgGK1X
-          k2OIFEg0Js7aX9/M/jLnNjTdjc5RUE45b0chPQJ9lv2Ub4jqItqtrZhy77a0e5Pb
-          ucAbKSizVP/2rml1JzLmL6V4jJtI6RWrUHuCIQDCFBvqN6cHqoQW8x++UuuPe44=
-          -----END CERTIFICATE-----
-        peer_cert: &etcd_peer_cert |
-          -----BEGIN CERTIFICATE-----
-          MIIDgjCCAmqgAwIBAgIUQWAM/+Fzbw9eWshdyUorgAD5mOMwDQYJKoZIhvcNAQEF
-          BQAwHzELMAkGA1UEBhMCVVMxEDAOBgNVBAoMB1Bpdm90YWwwHhcNMTUxMTE4MjA0
-          NTA4WhcNMTcxMTE3MjA0NTA4WjBCMQswCQYDVQQGEwJVUzEQMA4GA1UECgwHUGl2
-          b3RhbDEhMB8GA1UEAwwYZXRjZC5zZXJ2aWNlLmNmLmludGVybmFsMIIBIjANBgkq
-          hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0JMW2C6W9q+fa/2tHMFUN1ToAZ9RwBRP
-          JCXARXFj52pF8jjqzudT6fb81Yw0ak45hAbDuOreaHShtLLFqzkIhnmh2WJllB2l
-          f7x1Mbs4S8tfkNgCVb526LLpAYFfLJ6K4KS8Dk8L/8d291Wr0/kVlB9ZuFcXE4Ug
-          j1U+Ali08PfKduVFPOukkzJ2kS70s0krVSTrcXBRGmUvthBLf+LkXTPpmxGDnQcx
-          Z4A5CMtE2uEbRrlQPmC6CWWGsjggmJ23lUcwLQrH/TiEfxrNV0A5oIg0AOP5ps4F
-          PpUrFrjsPHneJds/3inmU9UIu1eLbkTGHGw+LXG/JP0Lng15frpruwIDAQABo4GS
-          MIGPMA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUP2awOWj18GEPeR4lmqzB3IbZ
-          J5cwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMD8GA1UdEQQ4MDaCGGV0
-          Y2Quc2VydmljZS5jZi5pbnRlcm5hbIIaKi5ldGNkLnNlcnZpY2UuY2YuaW50ZXJu
-          YWwwDQYJKoZIhvcNAQEFBQADggEBAAHZ32ebyGU1GjO8pPRIcHi2RbltX345rJ2o
-          QYBpbKf+k/wcUBgMqI+M0qqjN+LLm86hvjba7uGAls3rB1tQLPGIawKVNy+HtxU7
-          2n7ah4Sv/5dragOsv1MtyfHp63NqfB7GFL+CJfuHoVDFF/6s3PiJEtLX6vJVvXZZ
-          0kbDmOsDQHPPdVCu6wXfArXlIbo5gP3kerzkaHNftn46I8djCebPuaJu0aQ+0Sj7
-          rYhaet+HlU7w77LUWlrZsCQF5ftApOFcZkEwvYLcJo1gqER1GO75ViG8+QVfS0zC
-          hQVgyqFWYlnsWCrZM4qZqVR9zbuaQ8K+qIhVuWX33L6A2XinlC4=
-          -----END CERTIFICATE-----
-        peer_key: &etcd_peer_key |
-          -----BEGIN RSA PRIVATE KEY-----
-          MIIEpAIBAAKCAQEA0JMW2C6W9q+fa/2tHMFUN1ToAZ9RwBRPJCXARXFj52pF8jjq
-          zudT6fb81Yw0ak45hAbDuOreaHShtLLFqzkIhnmh2WJllB2lf7x1Mbs4S8tfkNgC
-          Vb526LLpAYFfLJ6K4KS8Dk8L/8d291Wr0/kVlB9ZuFcXE4Ugj1U+Ali08PfKduVF
-          POukkzJ2kS70s0krVSTrcXBRGmUvthBLf+LkXTPpmxGDnQcxZ4A5CMtE2uEbRrlQ
-          PmC6CWWGsjggmJ23lUcwLQrH/TiEfxrNV0A5oIg0AOP5ps4FPpUrFrjsPHneJds/
-          3inmU9UIu1eLbkTGHGw+LXG/JP0Lng15frpruwIDAQABAoIBAG62FMMtf75znFiz
-          L4d661vverMZwUgGv7d9PmDd/lyg4X3gTmsDCVzAWJZ1tIDVAtycxplKOkIR3p/O
-          4POw82CGAa4k96w2TFnQTBjYutoompKExkCDOBTumpXM+RrzEN6LMrMZrFHZq8E/
-          vVRn+9dDCNm7iKk42f6bDa4rLehVeO7zhGpQzozBoqMlCGZ5I1IDakPGmzpk5B2H
-          y2fml0tMVEd7hUEFKNE2t0y8fVW8CiPmR2htEBijSSw+Z3EQeozZEzmJNCEx8Mtb
-          bUfCgbvmO0tmAjgWIbUBB+vf6sr2vJapBdbkd6/Q30b2IB0Q9faSkOjCA9ycu7N/
-          3CPjbiECgYEA+9vfTykwlhvYY8uGvPigBmvnby7nCQWC186D0Gjt3SkYxY7Z0+pW
-          v8YnYFiPDZ7FMHf808osgNXaWvxQdWWN2sAd5TrwYPa68Gzw/v/Lq2WzR1kdkLGL
-          WlEbHiuy5ZTsNNy2/i17FqgdoZglv52DqPzWOZMzXVelpLy91UQ8APECgYEA1AEG
-          KECgcnUGZ7gvYLNi0KfuLLT6Zdd255Cu1Vu4ZxXvxQG3tOd8znRwJho+guJoFaNH
-          ItofqIn3O5SG/rTtlj/ZN9oO0lygwT0d18RobJiK2p0YRItvNNBFQc0Q4hDqqUDb
-          sUbBDrTcEKmJ66RbRXggX1C96QF2GgNOTgiWd2sCgYEA+oGSVmlQsy1VCMWp6ZGd
-          kWWIF1VeZOG/Z6k4AHYtiNlUk0Nns9kUmcCc776F4vU1iuT9ayZfJ3INsovd9zag
-          ZqDJ23PJHZirDXI+LlP8nykTrXac6os9YQLk5xht4t5CJr4VoTFZiYqDlnP/r9wa
-          1V1OMowP/dqsnfNBGbu5tvECgYA4VQVT0MhRYXMQQEqmgUPyeYy56GTYhsYbhcBP
-          BQ4cpiGN0YUE1rW9Dgd2uGZ/1LUfesE+K4NZ/z7oX/D24RB4agLH6nMhxmcYsaqq
-          WI/+uxG6QR/fpsUn3WdpspmX2DLiQk+d7VUDGV+YNdRl/sgZz2+apBOyRCcjhlla
-          NsH0fQKBgQCG8cENarNWXQW/oaYvSKzK226ckbtYdAS7im5rzYqxcuDKvI2ocMtp
-          EjNJTCQK8xvxW0nnefLYLbUD+ZA8L9DrEf+Sgr3Zwp+m58nL9XlGHeZE2wymwqCB
-          ETMxxm/r9PEu5JFFIl3c56/L9REZYDyhpwR5tELQCFxGuKT5Wxlfnw==
-          -----END RSA PRIVATE KEY-----
-      consul:
-        agent:
-          services:
-            etcd: {}
-
-  - name: router
-    templates:
+    jobs:
       - name: gorouter
         release: cf
       - name: ssh_proxy
@@ -359,41 +369,106 @@ jobs:
         release: cf
       - name: metron_agent
         release: cf
-    instances: 1
-    resource_pool: gorouter
-    networks:
-      - name: private
-        default: [dns, gateway]
-
 
   # co-locate mysql and proxy since there's only one mysql
   - name: mysql
-    templates:
+    instances: 1
+    vm_type: cf-common
+    stemcell: trusty
+    persistent_disk_type: mysql
+    networks:
+      - name: private
+        default: [dns, gateway]
+    jobs:
       - name: proxy
         release: cf-mysql
       - name: mysql
         release: cf-mysql
+
+  - name: cloud-controller-nats-uaa
     instances: 1
-    resource_pool: common
-    persistent_disk_pool: mysql
+    vm_type: cf-common
+    stemcell: trusty
     networks:
       - name: private
         default: [dns, gateway]
-
-  - name: cloud-controller-nats-uaa
-    templates:
+    jobs:
       - name: nats
         release: cf
       - name: cloud_controller_ng
         release: cf
+        properties:
+          cc:
+            buildpacks:
+              blobstore_type: fog
+              buildpack_directory_key: <%= gcs_buildpack_bucket %>
+              fog_connection: &fog_connection
+                provider: Google
+                google_storage_access_key_id: <%= gcs_access_key %>
+                google_storage_secret_access_key: <%= gcs_secret_access_key %>
+            droplets:
+              blobstore_type: fog
+              droplet_directory_key: <%= gcs_droplet_bucket %>
+              fog_connection: *fog_connection
+            packages:
+              blobstore_type: fog
+              app_package_directory_key: <%= gcs_package_bucket %>
+              fog_connection: *fog_connection
+            resource_pool:
+              blobstore_type: fog
+              resource_directory_key: <%= gcs_resource_bucket %>
       - name: cloud_controller_worker
         release: cf
+        properties:
+          cc:
+            buildpacks:
+              blobstore_type: fog
+              buildpack_directory_key: <%= gcs_buildpack_bucket %>
+              fog_connection: &fog_connection
+                provider: Google
+                google_storage_access_key_id: <%= gcs_access_key %>
+                google_storage_secret_access_key: <%= gcs_secret_access_key %>
+            droplets:
+              blobstore_type: fog
+              droplet_directory_key: <%= gcs_droplet_bucket %>
+              fog_connection: *fog_connection
+            packages:
+              blobstore_type: fog
+              app_package_directory_key: <%= gcs_package_bucket %>
+              fog_connection: *fog_connection
+            resource_pool:
+              blobstore_type: fog
+              resource_directory_key: <%= gcs_resource_bucket %>
       - name: metron_agent
         release: cf
       - name: consul_agent
         release: cf
+        properties:
+          consul:
+            agent:
+              services:
+                cloud_controller_ng: {}
+                uaa: {}
       - name: route_registrar
         release: cf
+        properties:
+          route_registrar:
+            routes:
+              - name: api
+                port: 9022
+                registration_interval: 20s
+                tags:
+                  component: CloudController
+                uris:
+                  - "api.<%= root_domain %>"
+              - name: uaa
+                port: 8080
+                registration_interval: 20s
+                uris:
+                  - "uaa.<%= root_domain %>"
+                  - "*.uaa.<%= root_domain %>"
+                  - "login.<%= root_domain %>"
+                  - "*.login.<%= root_domain %>"
       - name: go-buildpack
         release: cf
       - name: binary-buildpack
@@ -412,105 +487,60 @@ jobs:
         release: cf
       - name: statsd-injector
         release: cf
+
+  - name: diego-cell
     instances: 1
-    resource_pool: common
+    vm_type: cells
+    stemcell: trusty
     networks:
       - name: private
         default: [dns, gateway]
-    properties:
-      route_registrar:
-        routes:
-          - name: api
-            port: 9022
-            registration_interval: 20s
-            tags:
-              component: CloudController
-            uris:
-              - "api.<%= root_domain %>"
-          - name: uaa
-            port: 8080
-            registration_interval: 20s
-            uris:
-              - "uaa.<%= root_domain %>"
-              - "*.uaa.<%= root_domain %>"
-              - "login.<%= root_domain %>"
-              - "*.login.<%= root_domain %>"
-      consul:
-        agent:
-          services:
-            cloud_controller_ng: {}
-            uaa: {}
-      cc:
-        buildpacks:
-          blobstore_type: fog
-          buildpack_directory_key: YOUR-GCS-BUILDPACK-BUCKET
-          fog_connection: &fog_connection
-            provider: Google
-            google_storage_access_key_id: GCS_ACCESS_KEY
-            google_storage_secret_access_key: GCS_SECRET_ACCESS_KEY
-        droplets:
-          blobstore_type: fog
-          droplet_directory_key: YOUR-GCS-DROPLET-BUCKET
-          fog_connection: *fog_connection
-        packages:
-          blobstore_type: fog
-          app_package_directory_key: YOUR-GCS-PACKAGE-BUCKET
-          fog_connection: *fog_connection
-        resource_pool:
-          blobstore_type: fog
-          resource_directory_key: YOUR-GCS-RESOURCE-BUCKET
-
-  - name: diego-cell
-    templates:
+    jobs:
       - name: rep
         release: diego
       - name: consul_agent
         release: cf
       - name: garden
         release: garden-linux
+        properties:
+          garden:
+            network_mtu: 1432
       - name: rootfses
         release: diego
       - name: metron_agent
         release: cf
+
+  - name: loggregator-trafficcontroller-doppler
     instances: 1
-    resource_pool: cells
+    vm_type: cf-common
+    stemcell: trusty
     networks:
       - name: private
         default: [dns, gateway]
-    properties:
-      garden:
-        network_mtu: 1432
-
-  - name: loggregator-trafficcontroller-doppler
-    templates:
+    jobs:
       - name: loggregator_trafficcontroller
         release: cf
       - name: metron_agent
         release: cf
       - name: route_registrar
         release: cf
+        properties:
+          route_registrar:
+            routes:
+              - name: doppler
+                port: 8081
+                registration_interval: 20s
+                uris:
+                  - "doppler.<%= root_domain %>"
+              - name: loggregator
+                port: 8080
+                registration_interval: 20s
+                uris:
+                  - "loggregator.<%= root_domain %>"
       - name: doppler
         release: cf
       - name: syslog_drain_binder
         release: cf
-    instances: 1
-    resource_pool: common
-    networks:
-      - name: private
-        default: [dns, gateway]
-    properties:
-      route_registrar:
-        routes:
-          - name: doppler
-            port: 8081
-            registration_interval: 20s
-            uris:
-              - "doppler.<%= root_domain %>"
-          - name: loggregator
-            port: 8080
-            registration_interval: 20s
-            uris:
-              - "loggregator.<%= root_domain %>"
 
 properties:
   network_name: private
