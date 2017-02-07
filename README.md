@@ -22,4 +22,6 @@ with additional instructions [here](https://medium.com/google-cloud/playing-with
 1. `bin/deploy-bosh-director.sh [ADMIN_USERNAME]`
 1. `bosh target 10.0.0.6`
 1. `github_client_id=[GITHUB_CLIENT_ID] github_client_secret=[GITHUB_CLIENT_SECRET] bin/deploy-concourse.sh`
+1. You will need to create an [interoperability key](https://cloud.google.com/storage/docs/migrating#keys) to use google cloud storage as your blobstore.
+1. `gcs_access_key=[GCS_ACCESS_KEY] gcs_secret_access_key=[GCS_SECRET_ACCESS_KEY] bin/deploy-cf.sh`
 

@@ -17,11 +17,6 @@ azs:
   cloud_properties:
     zone: <%=zone_2 %>
 
-stemcells:
-- alias: trusty
-  os: ubuntu-trusty
-  version: latest
-
 vm_types:
 - name: common
   cloud_properties:
