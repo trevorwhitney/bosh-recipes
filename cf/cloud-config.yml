@@ -91,7 +91,6 @@ disk_types:
   - name: database
     disk_size: 10240
 
-disk_pools:
   - name: consul-etcd
     disk_size: 2048
 

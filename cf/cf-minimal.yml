@@ -440,6 +440,14 @@ jobs:
               component: CloudController
             uris:
               - "api.<%= root_domain %>"
+          - name: uaa
+            port: 8080
+            registration_interval: 20s
+            uris:
+              - "uaa.<%= root_domain %>"
+              - "*.uaa.<%= root_domain %>"
+              - "login.<%= root_domain %>"
+              - "*.login.<%= root_domain %>"
       consul:
         agent:
           services:
@@ -464,16 +472,6 @@ jobs:
         resource_pool:
           blobstore_type: fog
           resource_directory_key: YOUR-GCS-RESOURCE-BUCKET
-      route_registrar:
-        routes:
-          - name: uaa
-            port: 8080
-            registration_interval: 20s
-            uris:
-              - "uaa.<%= root_domain %>"
-              - "*.uaa.<%= root_domain %>"
-              - "login.<%= root_domain %>"
-              - "*.login.<%= root_domain %>"
 
   - name: diego-cell
     templates:
