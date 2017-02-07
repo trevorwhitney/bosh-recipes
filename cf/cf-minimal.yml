@@ -249,6 +249,8 @@ instance_groups:
           etcd:
             peer_require_ssl: false
             require_ssl: false
+            machines:
+              - etcd.service.cf.internal
       - name: etcd_metrics_server
         release: cf
 
@@ -536,6 +538,7 @@ instance_groups:
         release: cf
         properties:
           nats:
+            user: nats
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
           cc:
@@ -561,6 +564,7 @@ instance_groups:
         release: cf
         properties:
           nats:
+            user: nats
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
           cc:
@@ -601,6 +605,7 @@ instance_groups:
         release: cf
         properties:
           nats:
+            port: 4222
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
           route_registrar:
@@ -677,6 +682,7 @@ instance_groups:
         release: cf
         properties:
           nats:
+            port: 4222
             machines:
               - 0.nats.private.<%= deployment_name %>.microbosh
           route_registrar:
