@@ -537,6 +537,7 @@ instance_groups:
       - name: cloud_controller_ng
         release: cf
         properties:
+          domain: <%= root_domain %>
           nats:
             user: nats
             password: "<%= common_password %>"
@@ -565,6 +566,7 @@ instance_groups:
       - name: cloud_controller_worker
         release: cf
         properties:
+          domain: <%= root_domain %>
           nats:
             user: nats
             port: 4222
