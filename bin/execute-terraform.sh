@@ -54,10 +54,11 @@ setup_terraform_remote_config() {
 
 export GOOGLE_CREDENTIALS=$(cat ${privates_dir}/${project_id}/terraform.key.json)
 echo "Which plan would you like to work with?"
-select plan in "Bosh" "Bosh w/ Concourse"; do
+select plan in "Bosh" "Bosh w/ Concourse" "Bosh, Concourse, & CF"; do
   case $plan in
     "Bosh") export plan_dir=$terraform_dir/bosh; break;;
     "Bosh w/ Concourse") export plan_dir=$terraform_dir/concourse; break;;
+    "Bosh, Concourse, & CF") export plan_dir=$terraform_dir/cf; break;;
   esac
 done
 
