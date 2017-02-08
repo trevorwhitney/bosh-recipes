@@ -16,7 +16,21 @@ if [ ! -e ~/.ssh/bosh ]; then
     sshKeys=<( gcloud compute project-info describe --format=json | jq -r '.commonInstanceMetadata.items[] | select(.key == "sshKeys") | .value' & echo "bosh:$(cat ~/.ssh/bosh.pub)"  )
 fi
 
-$bin_dir/generate-bosh-manifest.sh $1
-bosh-init deploy bosh.yml
-gsutil cp ${privates_dir}/${project_id}/bosh-credentials.yml gs://${project_id}-terraform-config
+# $bin_dir/generate-bosh-manifest.sh $1
+# bosh-init deploy bosh.yml
+# gsutil cp ${privates_dir}/${project_id}/bosh-credentials.yml gs://${project_id}-terraform-config
+# gsutil cp bosh-state.json gs://${project_id}-terraform-config
+
+bosh -e gcp -d bosh interpolate bosh.yml \
+  -v "project_id=${project_id}"
+  -v "zone=${zone}" \
+  -v "service_account_email=${service_account_email}" \
+  -v "network=${network}" \
+  -v "subnetwork=${subnetwork}" \
+  -v "admin_username=${admin_username}" \
+  -v "ssh_key_path=${ssh_key_path}" \
+  --vars-store="${privates_dir}/${project_id}/bosh-deployment-vars.yml" \
+  bosh-final.yml
+
+gsutil cp ${privates_dir}/${project_id}/bosh-deployment-vars.yml gs://${project_id}-terraform-config
 gsutil cp bosh-state.json gs://${project_id}-terraform-config
