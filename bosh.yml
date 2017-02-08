@@ -111,6 +111,9 @@ jobs:
         name: micro-google
         db: *db
         cpi_job: google_cpi
+        ssl:
+          key: "((director_ssl_cert.private_key))"
+          cert: "((director_ssl_cert.certificate))"
         user_management:
           provider: local
           local:
@@ -123,6 +126,7 @@ jobs:
         director_account:
           user: hm
           password: "((hm_password))"
+          ca_cert: "((root_ca.certificate))"
         resurrector_enabled: true
 
       google: &google_properties
@@ -188,3 +192,14 @@ variables:
   type: string
 - name: ssh_key_path
   type: path
+- name: root_ca
+  type: certificate
+  options:
+    common_name: rootCA
+- name: director_ssl_cert
+  type: certificate
+  options:
+    ca: root_ca
+    common_name: 10.0.0.6
+    alternative_names:
+      - 10.0.0.6
