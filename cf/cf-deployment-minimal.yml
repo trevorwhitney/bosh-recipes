@@ -215,15 +215,24 @@ instance_groups:
             total_routes: 1000
             total_services: -1
         buildpacks: &blobstore-properties
-          blobstore_type: webdav
-          webdav_config:
-            ca_cert: "((blobstore_tls.ca))"
-            blobstore_timeout: 5
-            password: "((blobstore_admin_users_password))"
-            private_endpoint: https://blobstore.service.cf.internal:4443
-            public_endpoint: https://blobstore.((system_domain))
-            username: blobstore-user
-        resource_pool: *blobstore-properties
+          blobstore_type: fog
+          buildpack_directory_key: "((gcs_buildpack_bucket))"
+          fog_connection: &fog_connection
+            provider: Google
+            google_storage_access_key_id: "((gcs_access_key))"
+            google_storage_secret_access_key: "((gcs_secret_access_key))"
+        droplets:
+          blobstore_type: fog
+          buildpack_directory_key: "((gcs_droplet_bucket))"
+          fog_connection: *fog_connection
+        packages:
+          blobstore_type: fog
+          buildpack_directory_key: "((gcs_package_bucket))"
+          fog_connection: *fog_connection
+        resource_pool:
+          blobstore_type: fog
+          buildpack_directory_key: "((gcs_resource_bucket))"
+          fog_connection: *fog_connection
         packages: *blobstore-properties
         droplets: *blobstore-properties
         mutual_tls: &cc_mutual_tls
@@ -874,8 +883,18 @@ instance_groups:
     release: statsd-injector
 
 variables:
-- name: blobstore_admin_users_password
+- name: gcs_access_key
   type: password
+- name: gcs_secret_access_key
+  type: password
+- name: gcs_buildpack_bucket
+  type: string
+- name: gcs_droplet_bucket
+  type: string
+- name: gcs_package_bucket
+  type: string
+- name: gcs_resource_bucket
+  type: string
 - name: cc_bulk_api_password
   type: password
 - name: cc_db_encryption_key
