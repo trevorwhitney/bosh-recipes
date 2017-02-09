@@ -1,0 +1,9 @@
+#!/bin/bash
+
+bosh_init=bosh-init-linux
+if [ `uname -s` == 'Darwin' ]; then
+  bosh_init=bosh-init-osx
+fi
+
+exec $bosh_init "$@"
+
