@@ -45,7 +45,6 @@ resource "google_compute_firewall" "cf-internal" {
     protocol = "udp"
   }
 
-  target_tags = ["cf-internal", "bosh-internal"]
   source_tags = ["cf-internal", "bosh-internal"]
 }
 
