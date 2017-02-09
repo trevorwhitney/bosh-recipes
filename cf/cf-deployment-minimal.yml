@@ -6,8 +6,101 @@ update:
   max_in_flight: 5
   serial: false
   update_watch_time: 5000-1200000
+
 instance_groups:
+- name: mysql
+  azs:
+  - z1
+  instances: 1
+  persistent_disk_type: mysql
+  vm_type: cf-common
+  stemcell: trusty
+  update:
+    serial: true
+  networks:
+  - name: private
+    static_ips:
+    - 10.140.31.193
+  jobs:
+  - name: consul_agent
+    release: consul
+    properties:
+      consul:
+        agent:
+          mode: client
+          domain: cf.internal
+          servers: *consul_machines
+        encrypt_keys:
+        - "((consul_encrypt_key))"
+        agent_cert: "((consul_agent.certificate))"
+        agent_key: "((consul_agent.private_key))"
+        ca_cert: "((consul_agent.ca))"
+        server_cert: "((consul_server.certificate))"
+        server_key: "((consul_server.private_key))"
+  - name: mysql
+    release: cf-mysql
+    properties:
+      network_name: private
+      cf_mysql:
+        mysql:
+          galera_healthcheck:
+            db_password: "((cf_mysql_mysql_galera_healthcheck_password))"
+            endpoint_username: galera_healthcheck
+            endpoint_password: "((cf_mysql_mysql_galera_healthcheck_endpoint_password))"
+          admin_password: "((cf_mysql_mysql_admin_password))"
+          roadmin_password: "((cf_mysql_mysql_roadmin_password))"
+          cluster_health:
+            password: "((cf_mysql_mysql_cluster_health_password))"
+          seeded_databases:
+          - name: cloud_controller
+            username: cloud_controller
+            password: "((cf_mysql_mysql_seeded_databases_cc_password))"
+          - name: uaa
+            username: uaa
+            password: "((cf_mysql_mysql_seeded_databases_uaa_password))"
+          - name: diego
+            username: diego
+            password: "((cf_mysql_mysql_seeded_databases_diego_password))"
+          database_startup_timeout: 600
+          cluster_ips:
+          - 10.140.31.193
+  - name: bbs
+    release: diego
+    properties:
+      diego:
+        bbs:
+          active_key_label: key-2016-06
+          encryption_keys:
+          - label: key-2016-06
+            passphrase: "((diego_bbs_encryption_keys_passphrase))"
+          sql:
+            db_host: 127.0.0.1
+            db_port: 3306
+            db_schema: diego
+            db_username: diego
+            db_password: "((cf_mysql_mysql_seeded_databases_diego_password))"
+            db_driver: mysql
+          etcd:
+            machines: []
+            ca_cert: nil
+            client_cert: nil
+            client_key: nil
+          ca_cert: "((diego_bbs_server.ca))"
+          auctioneer: &diego_auctioneer_client_properties
+            ca_cert: "((diego_auctioneer_client.ca))"
+            client_cert: "((diego_auctioneer_client.certificate))"
+            client_key: "((diego_auctioneer_client.private_key))"
+          server_cert: "((diego_bbs_server.certificate))"
+          server_key: "((diego_bbs_server.private_key))"
+  - name: metron_agent
+    release: loggregator
+    properties: *metron_agent_properties
+  update:
+    max_in_flight: 1
+    serial: true
 - name: consul-etcd
+  azs:
+  - z1
   instances: 1
   persistent_disk_type: consul-etcd
   vm_type: cf-common
@@ -17,9 +110,8 @@ instance_groups:
     max_in_flight: 1
   networks:
   - name: private
-    default: [dns, gateway]
     static_ips: &consul_ips
-    - 10.0.31.190
+    - 10.140.31.190
   jobs:
   - name: consul_agent
     release: consul
@@ -91,14 +183,15 @@ instance_groups:
           machines:
           - etcd.service.cf.internal
 - name: nats-api-router
+  azs:
+  - z1
   instances: 1
   vm_type: cf-common
   stemcell: trusty
   networks:
   - name: private
-    default: [dns, gateway]
     static_ips: &nats_machines
-    - 10.0.31.191
+    - 10.140.31.191
   jobs:
   - name: consul_agent
     release: consul
@@ -243,7 +336,7 @@ instance_groups:
         databases:
         - name: cloud_controller
           tag: cc
-        address: 10.0.31.193
+        address: 10.140.31.193
         db_scheme: mysql
         port: 3306
         roles:
@@ -371,18 +464,14 @@ instance_groups:
         ca_cert: "((uaa_ssl.ca))"
         ssl:
           port: 8443
-- name: mysql
+- name: diego-brain
+  azs:
+  - z1
   instances: 1
-  persistent_disk_type: mysql
   vm_type: cf-common
   stemcell: trusty
-  update:
-    serial: true
   networks:
   - name: private
-    default: [dns, gateway]
-    static_ips:
-    - 10.0.31.193
   jobs:
   - name: consul_agent
     release: consul
@@ -399,87 +488,6 @@ instance_groups:
         ca_cert: "((consul_agent.ca))"
         server_cert: "((consul_server.certificate))"
         server_key: "((consul_server.private_key))"
-  - name: mysql
-    release: cf-mysql
-    properties:
-      network_name: private
-      cf_mysql:
-        mysql:
-          galera_healthcheck:
-            db_password: "((cf_mysql_mysql_galera_healthcheck_password))"
-            endpoint_username: galera_healthcheck
-            endpoint_password: "((cf_mysql_mysql_galera_healthcheck_endpoint_password))"
-          admin_password: "((cf_mysql_mysql_admin_password))"
-          roadmin_password: "((cf_mysql_mysql_roadmin_password))"
-          cluster_health:
-            password: "((cf_mysql_mysql_cluster_health_password))"
-          seeded_databases:
-          - name: cloud_controller
-            username: cloud_controller
-            password: "((cf_mysql_mysql_seeded_databases_cc_password))"
-          - name: uaa
-            username: uaa
-            password: "((cf_mysql_mysql_seeded_databases_uaa_password))"
-          - name: diego
-            username: diego
-            password: "((cf_mysql_mysql_seeded_databases_diego_password))"
-          database_startup_timeout: 600
-          cluster_ips:
-          - 10.0.31.193
-  - name: metron_agent
-    release: loggregator
-    properties: *metron_agent_properties
-- name: diego
-  instances: 1
-  vm_type: cf-common
-  stemcell: trusty
-  networks:
-  - name: private
-    default: [dns, gateway]
-  jobs:
-  - name: consul_agent
-    release: consul
-    properties:
-      consul:
-        agent:
-          mode: client
-          domain: cf.internal
-          servers: *consul_machines
-        encrypt_keys:
-        - "((consul_encrypt_key))"
-        agent_cert: "((consul_agent.certificate))"
-        agent_key: "((consul_agent.private_key))"
-        ca_cert: "((consul_agent.ca))"
-        server_cert: "((consul_server.certificate))"
-        server_key: "((consul_server.private_key))"
-  - name: bbs
-    release: diego
-    properties:
-      diego:
-        bbs:
-          active_key_label: key-2016-06
-          encryption_keys:
-          - label: key-2016-06
-            passphrase: "((diego_bbs_encryption_keys_passphrase))"
-          sql:
-            db_host: 10.0.31.193
-            db_port: 3306
-            db_schema: diego
-            db_username: diego
-            db_password: "((cf_mysql_mysql_seeded_databases_diego_password))"
-            db_driver: mysql
-          etcd:
-            machines: []
-            ca_cert: nil
-            client_cert: nil
-            client_key: nil
-          ca_cert: "((diego_bbs_server.ca))"
-          auctioneer: &diego_auctioneer_client_properties
-            ca_cert: "((diego_auctioneer_client.ca))"
-            client_cert: "((diego_auctioneer_client.certificate))"
-            client_key: "((diego_auctioneer_client.private_key))"
-          server_cert: "((diego_bbs_server.certificate))"
-          server_key: "((diego_bbs_server.private_key))"
   - name: metron_agent
     release: loggregator
     properties: *metron_agent_properties
@@ -559,13 +567,17 @@ instance_groups:
     properties:
       diego:
         ssl: *ssl
+  update:
+    max_in_flight: 1
+    serial: true
 - name: diego-cell
+  azs:
+  - z1
   instances: 1
   vm_type: cells
   stemcell: trusty
   networks:
   - name: private
-    default: [dns, gateway]
   jobs:
   - name: consul_agent
     release: consul
@@ -611,6 +623,8 @@ instance_groups:
     release: loggregator
     properties: *metron_agent_properties
 - name: log-api-doppler
+  azs:
+  - z1
   instances: 1
   vm_type: cf-common
   stemcell: trusty
@@ -619,7 +633,6 @@ instance_groups:
     serial: true
   networks:
   - name: private
-    default: [dns, gateway]
   jobs:
   - name: consul_agent
     release: consul
@@ -739,12 +752,13 @@ instance_groups:
         srv_api_uri: https://api.((system_domain))
       ssl: *ssl
 - name: uaa
+  azs:
+  - z1
   instances: 1
   vm_type: cf-common
   stemcell: trusty
   networks:
   - name: private
-    default: [gateway, dns]
   jobs:
   - name: consul_agent
     release: consul
@@ -843,7 +857,7 @@ instance_groups:
             authorized-grant-types: client_credentials,refresh_token
             secret: "((uaa_clients_tcp_router_secret))"
       uaadb:
-        address: 10.0.31.193
+        address: 10.140.31.193
         databases:
         - name: uaa
           tag: uaa
@@ -881,6 +895,11 @@ instance_groups:
     properties: *metron_agent_properties
   - name: statsd-injector
     release: statsd-injector
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: "3312.17"
 
 variables:
 - name: gcs_access_key
@@ -1218,7 +1237,3 @@ releases:
   url: https://bosh.io/d/github.com/cloudfoundry/uaa-release?v=25
   version: "25"
   sha1: df3cf863e786148a7c8a7f7ffa2194bc3bafc3dc
-stemcells:
-- alias: trusty
-  os: ubuntu-trusty
-  version: "3312.17"

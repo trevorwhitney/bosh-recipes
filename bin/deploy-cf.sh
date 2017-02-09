@@ -23,12 +23,27 @@ gcloud config set compute/zone $zone
 
 source $bin_dir/setup-cf-env.sh
 
-bosh upload release https://bosh.io/d/github.com/cloudfoundry/cf-mysql-release?v=23
-bosh upload release https://bosh.io/d/github.com/cloudfoundry-incubator/garden-linux-release?v=0.340.0
-bosh upload release https://bosh.io/d/github.com/cloudfoundry-incubator/etcd-release?v=36
-bosh upload release https://bosh.io/d/github.com/cloudfoundry-incubator/diego-release?v=0.1454.0
-bosh upload release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=231
+bosh -e gcp -d cf upload-stemcell \
+  https://bosh.io/d/stemcells/bosh-google-kvm-ubuntu-trusty-go_agent?v=3312.17
 
-bosh update cloud-config $cf_dir/cloud-config.yml
-bosh deployment $cf_dir/cf-minimal.yml
-bosh -n deploy
+bosh -e gcp -d cf -n update-cloud-config $cf_dir/cloud-config.yml \
+  -v "zone_1=us-west1-a" \
+  -v "zone_2=us-west1-b" \
+  -v "cf_service_account=$service_account_email" \
+  -v "google_zone_compilation=$zone_compilation" \
+  -v "google_region_compilation=$region_compilation" \
+  -v "concourse_region=us-central1" \
+  -v "network=$network" \
+  -v "private_subnetwork=$private_subnet" \
+  -v "compilation_subnetwork=$compilation_subnet"
+
+bosh -e gcp -n -d cf deploy \
+  --vars-store=$privates_dir/$project_id/cf-deployment-vars.yml \
+  -v system_domain="$ip.xip.io" \
+  -v gcs_access_key=$gcs_access_key \
+  -v gcs_secret_access_key=$gcs_secret_access_key \
+  -v gcs_buildpack_bucket=$gcs_buildpack_bucket \
+  -v gcs_droplet_bucket=$gcs_droplet_bucket \
+  -v gcs_package_bucket=$gcs_package_bucket \
+  -v gcs_resource_bucket=$gcs_resource_bucket \
+  $cf_dir/cf-deployment-minimal.yml

@@ -5,4 +5,5 @@ privates
 .terraform
 .vagrant
 terraform.tfstate.backup
+terraform.tfstate
 bosh-state.json
