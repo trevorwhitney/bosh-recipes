@@ -11,7 +11,7 @@ resource "google_compute_subnetwork" "cf-compilation-subnet-1" {
 resource "google_compute_subnetwork" "cf-private-subnet-1" {
   name          = "${var.prefix}cf-private-${var.region}"
   region        = "${var.region}"
-  ip_cidr_range = "192.168.0.0/16"
+  ip_cidr_range = "10.140.0.0/16"
   network       = "https://www.googleapis.com/compute/v1/projects/${var.projectid}/global/networks/${var.network}"
 }
 
@@ -26,6 +26,27 @@ resource "google_compute_firewall" "cf-public" {
   }
 
   target_tags = ["cf-public"]
+}
+
+//Allow internal traffic
+resource "google_compute_firewall" "cf-internal" {
+  name    = "cf-internal"
+  network = "${var.network}"
+
+  allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+  }
+
+  allow {
+    protocol = "udp"
+  }
+
+  target_tags = ["cf-internal", "bosh-internal"]
+  source_tags = ["cf-internal", "bosh-internal"]
 }
 
 // Static IP address for forwarding rule
