@@ -47,3 +47,5 @@ bosh -e gcp -n -d cf deploy \
   -v gcs_package_bucket=$gcs_package_bucket \
   -v gcs_resource_bucket=$gcs_resource_bucket \
   $cf_dir/cf-deployment-minimal.yml
+
+gsutil cp privates/twhitney-bosh/cf-deployment-vars.yml gs://twhitney-bosh-terraform-config

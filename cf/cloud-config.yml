@@ -9,83 +9,128 @@ azs:
 - name: z3
   cloud_properties:
     zone: "((google_zone_compilation))"
-
 vm_types:
 - name: common
   cloud_properties:
     machine_type: n1-standard-1
     root_disk_size_gb: 20
     root_disk_type: pd-ssd
-
 - name: worker
   cloud_properties:
     machine_type: n1-standard-2
     root_disk_size_gb: 100
     root_disk_type: pd-ssd
-
 - name: cf-common
   cloud_properties:
     zone: "((zone_1))"
     machine_type: n1-standard-1
-    root_disk_size_gb: 20
-    root_disk_type: pd-standard
+    root_disk_size_gb: 10
+    root_disk_type: pd-ssd
     service_account: "((cf_service_account))"
-
-- name: gorouter
+- name: compilation
   cloud_properties:
-    zone: "((zone_1))"
-    machine_type: n1-standard-1
-    root_disk_size_gb: 20
-    root_disk_type: pd-standard
-    target_pool: cf-public
-    service_account: "((cf_service_account))"
-    tags:
-      - cf-public
-
-- name: cells
-  cloud_properties:
-    zone: "((zone_1))"
-    machine_type: n1-standard-1
-    root_disk_size_gb: 100
-    root_disk_type: pd-standard
+    zone: "((google_zone_compilation))"
+    region: "((google_region_compilation))"
+    machine_type: n1-standard-2
+    root_disk_size_gb: 10
+    root_disk_type: pd-ssd
+    preemptible: true
     service_account: "((cf_service_account))"
 
 disk_types:
-  - name: database
-    disk_size: 10240
-
-  - name: consul-etcd
-    disk_size: 10240
-    cloud_properties:
-      type: pd-ssd
-
-  - name: mysql
-    disk_size: 10240
-
-  - name: diego
-    disk_size: 5120
+- name: database
+  disk_size: 10240
+- name: consul-etcd
+  disk_size: 10240
+  cloud_properties:
+    type: pd-ssd
+- cloud_properties:
+    encrypted: true
+    type: pd-ssd
+  disk_size: 1024
+  name: 1GB
+- cloud_properties:
+    encrypted: true
+    type: pd-ssd
+  disk_size: 5120
+  name: 5GB
+- cloud_properties:
+    encrypted: true
+    type: pd-ssd
+  disk_size: 10240
+  name: 10GB
+- cloud_properties:
+    encrypted: true
+    type: pd-ssd
+  disk_size: 51200
+  name: 50GB
+- cloud_properties:
+    encrypted: true
+    type: pd-ssd
+  disk_size: 102400
+  name: 100GB
+- cloud_properties:
+    encrypted: true
+    type: pd-ssd
+  disk_size: 512000
+  name: 500GB
+- cloud_properties:
+    encrypted: true
+    type: pd-ssd
+  disk_size: 1048576
+  name: 1TB
 
 vm_extensions:
 - name: concourse-lb
   cloud_properties:
     target_pool: concourse-target-pool
+- name: cf-lb
+  cloud_properties:
+    target_pool: cf-public
+    tags:
+    - cf-public
+- name: 5GB_ephemeral_disk
+  cloud_properties:
+    root_disk_size_gb: 5
+    root_disk_type: pd-ssd
+- name: 10GB_ephemeral_disk
+  cloud_properties:
+    root_disk_size_gb: 10
+    root_disk_type: pd-ssd
+- name: 50GB_ephemeral_disk
+  cloud_properties:
+    root_disk_size_gb: 50
+    root_disk_type: pd-ssd
+- name: 100GB_ephemeral_disk
+  cloud_properties:
+    root_disk_size_gb: 100
+    root_disk_type: pd-ssd
+- name: 500GB_ephemeral_disk
+  cloud_properties:
+    root_disk_size_gb: 500
+    root_disk_type: pd-ssd
+- name: 1TB_ephemeral_disk
+  cloud_properties:
+    root_disk_size_gb: 1000
+    root_disk_type: pd-ssd
+- name: internet-required
+  cloud_properties:
+    ephemeral_external_ip: true
+- name: internet-not-required
+  cloud_properties:
+    ephemeral_external_ip: false
 
 compilation:
   az: z3
   workers: 4
   network: compilation
   reuse_compilation_vms: true
-  cloud_properties:
-    zone: "((google_zone_compilation))"
-    region: "((google_region_compilation))"
-    machine_type: n1-standard-2
-    root_disk_size_gb: 100
-    root_disk_type: pd-ssd
-    preemptible: true
-    service_account: "((cf_service_account))"
+  vm_type: compilation
+  vm_extensions:
+  - 100GB_ephemeral_disk
 
 networks:
-  - name: public
+  - name: concourse-private
     type: manual
     subnets:
     - az: z1
@@ -94,21 +139,10 @@ networks:
       cloud_properties:
         network_name: bosh
         subnetwork_name: concourse-public-"((concourse_region))"-1
-        ephemeral_external_ip: true
+        ephemeral_external_ip: false
         tags:
           - concourse-public
           - concourse-internal
-    - az: z2
-      range: 10.160.0.0/24
-      gateway: 10.160.0.1
-      cloud_properties:
-        network_name: bosh
-        subnetwork_name: concourse-public-"((concourse_region))"-2
-        ephemeral_external_ip: true
-        tags:
-          - concourse-public
-          - concourse-internal
-
   - name: compilation
     type: manual
     subnets:
@@ -125,24 +159,25 @@ networks:
           - cf-internal
           - bosh-internal
           - no-ip
-
-  - name: private
+  - name: cf-private
     type: manual
     subnets:
     - az: z1 
-      range: 10.140.0.0/16
-      gateway: 10.140.0.1
-      static: [10.140.31.190-10.140.31.195]
+      gateway: 10.140.16.1
+      range: 10.140.16.0/20
+      reserved:
+      - 10.140.16.2-10.0.16.3
+      - 10.140.31.255
+      static:
+      - 10.140.31.190-10.140.31.254
       cloud_properties:
         zone: "((zone_1))"
         network_name: "((network))"
         subnetwork_name: "((private_subnetwork))"
-        ephemeral_external_ip: false
+        ephemeral_external_ip: true
         tags:
           - cf-internal
           - bosh-internal
-          - no-ip
-
   - name: vip
     type: vip
 

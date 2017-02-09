@@ -4,12 +4,6 @@ resource "google_compute_subnetwork" "concourse-public-subnet-1" {
   network       = "${var.host_network_link}"
 }
 
-resource "google_compute_subnetwork" "concourse-public-subnet-2" {
-  name          = "concourse-public-${var.region}-2"
-  ip_cidr_range = "10.160.0.0/16"
-  network       = "${var.host_network_link}"
-}
-
 resource "google_compute_firewall" "concourse-public" {
   name    = "concourse-public"
   network = "${var.host_network_name}"

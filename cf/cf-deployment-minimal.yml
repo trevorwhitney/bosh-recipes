@@ -12,13 +12,15 @@ instance_groups:
   azs:
   - z1
   instances: 1
-  persistent_disk_type: mysql
+  persistent_disk_type: 10GB
   vm_type: cf-common
+  vm_extensions:
+  - 10GB_ephemeral_disk
   stemcell: trusty
   update:
     serial: true
   networks:
-  - name: private
+  - name: cf-private
     static_ips:
     - 10.140.31.193
   jobs:
@@ -102,14 +104,16 @@ instance_groups:
   azs:
   - z1
   instances: 1
-  persistent_disk_type: consul-etcd
+  persistent_disk_type: 10GB
   vm_type: cf-common
+  vm_extensions:
+  - 10GB_ephemeral_disk
   stemcell: trusty
   update:
     serial: true
     max_in_flight: 1
   networks:
-  - name: private
+  - name: cf-private
     static_ips: &consul_ips
     - 10.140.31.190
   jobs:
@@ -137,7 +141,7 @@ instance_groups:
       etcd:
         advertise_urls_dns_suffix: etcd.service.cf.internal
         cluster:
-        - instances: 3
+        - instances: 1
           name: etcd
         peer_require_ssl: true
         require_ssl: true
@@ -187,9 +191,12 @@ instance_groups:
   - z1
   instances: 1
   vm_type: cf-common
+  vm_extensions:
+    - cf-lb
+    - 50GB_ephemeral_disk
   stemcell: trusty
   networks:
-  - name: private
+  - name: cf-private
     static_ips: &nats_machines
     - 10.140.31.191
   jobs:
@@ -469,9 +476,12 @@ instance_groups:
   - z1
   instances: 1
   vm_type: cf-common
+  vm_extensions:
+    - cf-lb
+    - 5GB_ephemeral_disk
   stemcell: trusty
   networks:
-  - name: private
+  - name: cf-private
   jobs:
   - name: consul_agent
     release: consul
@@ -574,10 +584,12 @@ instance_groups:
   azs:
   - z1
   instances: 1
-  vm_type: cells
+  vm_type: cf-common
+  vm_extensions:
+  - 100GB_ephemeral_disk
   stemcell: trusty
   networks:
-  - name: private
+  - name: cf-private
   jobs:
   - name: consul_agent
     release: consul
@@ -622,143 +634,16 @@ instance_groups:
   - name: metron_agent
     release: loggregator
     properties: *metron_agent_properties
-- name: log-api-doppler
-  azs:
-  - z1
-  instances: 1
-  vm_type: cf-common
-  stemcell: trusty
-  update:
-    max_in_flight: 1
-    serial: true
-  networks:
-  - name: private
-  jobs:
-  - name: consul_agent
-    release: consul
-    properties:
-      consul:
-        agent:
-          mode: client
-          domain: cf.internal
-          servers: *consul_machines
-          services:
-            loggregator_trafficcontroller: {}
-            doppler:
-              name: doppler
-        encrypt_keys:
-        - "((consul_encrypt_key))"
-        agent_cert: "((consul_agent.certificate))"
-        agent_key: "((consul_agent.private_key))"
-        ca_cert: "((consul_agent.ca))"
-        server_cert: "((consul_server.certificate))"
-        server_key: "((consul_server.private_key))"
-  - name: loggregator_trafficcontroller
-    release: loggregator
-    properties:
-      traffic_controller:
-        etcd:
-          client_cert: "((etcd_client.certificate))"
-          client_key: "((etcd_client.private_key))"
-      uaa:
-        clients:
-          doppler:
-            secret: "((uaa_clients_doppler_secret))"
-        url: https://uaa.((system_domain))
-      loggregator:
-        tls:
-          ca_cert: "((loggregator_tls_tc.ca))"
-          trafficcontroller:
-            cert: "((loggregator_tls_tc.certificate))"
-            key: "((loggregator_tls_tc.private_key))"
-        etcd:
-          require_ssl: true
-          ca_cert: "((etcd_server.ca))"
-          machines:
-          - etcd.service.cf.internal
-      system_domain: "((system_domain))"
-      ssl: *ssl
-      cc:
-        srv_api_uri: https://api.((system_domain))
-  - name: route_registrar
-    release: routing
-    properties:
-      route_registrar:
-        routes:
-        - name: loggregator
-          port: 8080
-          registration_interval: 20s
-          uris:
-          - loggregator.((system_domain))
-        - name: doppler
-          port: 8081
-          registration_interval: 20s
-          uris:
-          - doppler.((system_domain))
-          - "*.doppler.((system_domain))"
-      nats:
-        machines: *nats_machines
-        password: "((nats_password))"
-        port: 4222
-        user: nats
-  - name: metron_agent
-    release: loggregator
-    properties: *metron_agent_properties
-  - name: doppler
-    release: loggregator
-    properties:
-      doppler:
-        etcd:
-          client_cert: "((etcd_client.certificate))"
-          client_key: "((etcd_client.private_key))"
-        syslog_skip_cert_verify: true
-        tls:
-          enable: true
-      loggregator:
-        tls:
-          ca_cert: "((loggregator_tls_doppler.ca))"
-          doppler:
-            cert: "((loggregator_tls_doppler.certificate))"
-            key: "((loggregator_tls_doppler.private_key))"
-        etcd:
-          require_ssl: true
-          ca_cert: "((etcd_server.ca))"
-          machines:
-          - etcd.service.cf.internal
-      doppler_endpoint:
-        shared_secret: "((dropsonde_shared_secret))"
-  - name: syslog_drain_binder
-    release: loggregator
-    properties:
-      loggregator:
-        tls:
-          syslogdrainbinder:
-            cert: "((loggregator_tls_syslogdrainbinder.certificate))"
-            key: "((loggregator_tls_syslogdrainbinder.private_key))"
-        etcd:
-          require_ssl: true
-          ca_cert: "((etcd_server.ca))"
-          machines:
-          - etcd.service.cf.internal
-      syslog_drain_binder:
-        etcd:
-          client_cert: "((etcd_client.certificate))"
-          client_key: "((etcd_client.private_key))"
-      system_domain: "((system_domain))"
-      cc:
-        mutual_tls:
-          ca_cert: "((loggregator_tls_syslogdrainbinder.ca))"
-        bulk_api_password: "((cc_bulk_api_password))"
-        srv_api_uri: https://api.((system_domain))
-      ssl: *ssl
 - name: uaa
   azs:
   - z1
   instances: 1
   vm_type: cf-common
+  vm_extenstions:
+  - 10GB_ephemeral_disk
   stemcell: trusty
   networks:
-  - name: private
+  - name: cf-private
   jobs:
   - name: consul_agent
     release: consul
@@ -895,6 +780,138 @@ instance_groups:
     properties: *metron_agent_properties
   - name: statsd-injector
     release: statsd-injector
+- name: log-api-doppler
+  azs:
+  - z1
+  instances: 1
+  vm_type: cf-common
+  vm_extensions:
+  - 10GB_ephemeral_disk
+  stemcell: trusty
+  update:
+    max_in_flight: 1
+    serial: true
+  networks:
+  - name: cf-private
+  jobs:
+  - name: consul_agent
+    release: consul
+    properties:
+      consul:
+        agent:
+          mode: client
+          domain: cf.internal
+          servers: *consul_machines
+          services:
+            loggregator_trafficcontroller: {}
+            doppler:
+              name: doppler
+        encrypt_keys:
+        - "((consul_encrypt_key))"
+        agent_cert: "((consul_agent.certificate))"
+        agent_key: "((consul_agent.private_key))"
+        ca_cert: "((consul_agent.ca))"
+        server_cert: "((consul_server.certificate))"
+        server_key: "((consul_server.private_key))"
+  - name: loggregator_trafficcontroller
+    release: loggregator
+    properties:
+      traffic_controller:
+        etcd:
+          client_cert: "((etcd_client.certificate))"
+          client_key: "((etcd_client.private_key))"
+      uaa:
+        clients:
+          doppler:
+            secret: "((uaa_clients_doppler_secret))"
+        url: https://uaa.((system_domain))
+      loggregator:
+        outgoing_dropsonde_port: 8083
+        tls:
+          ca_cert: "((loggregator_tls_tc.ca))"
+          trafficcontroller:
+            cert: "((loggregator_tls_tc.certificate))"
+            key: "((loggregator_tls_tc.private_key))"
+        etcd:
+          require_ssl: true
+          ca_cert: "((etcd_server.ca))"
+          machines:
+          - etcd.service.cf.internal
+      system_domain: "((system_domain))"
+      ssl: *ssl
+      cc:
+        srv_api_uri: https://api.((system_domain))
+  - name: route_registrar
+    release: routing
+    properties:
+      route_registrar:
+        routes:
+        - name: loggregator
+          port: 8080
+          registration_interval: 20s
+          uris:
+          - loggregator.((system_domain))
+        - name: doppler
+          port: 8081
+          registration_interval: 20s
+          uris:
+          - doppler.((system_domain))
+          - "*.doppler.((system_domain))"
+      nats:
+        machines: *nats_machines
+        password: "((nats_password))"
+        port: 4222
+        user: nats
+  - name: metron_agent
+    release: loggregator
+    properties: *metron_agent_properties
+  - name: doppler
+    release: loggregator
+    properties:
+      doppler:
+        etcd:
+          client_cert: "((etcd_client.certificate))"
+          client_key: "((etcd_client.private_key))"
+        syslog_skip_cert_verify: true
+        tls:
+          enable: true
+      loggregator:
+        tls:
+          ca_cert: "((loggregator_tls_doppler.ca))"
+          doppler:
+            cert: "((loggregator_tls_doppler.certificate))"
+            key: "((loggregator_tls_doppler.private_key))"
+        etcd:
+          require_ssl: true
+          ca_cert: "((etcd_server.ca))"
+          machines:
+          - etcd.service.cf.internal
+      doppler_endpoint:
+        shared_secret: "((dropsonde_shared_secret))"
+  - name: syslog_drain_binder
+    release: loggregator
+    properties:
+      loggregator:
+        tls:
+          syslogdrainbinder:
+            cert: "((loggregator_tls_syslogdrainbinder.certificate))"
+            key: "((loggregator_tls_syslogdrainbinder.private_key))"
+        etcd:
+          require_ssl: true
+          ca_cert: "((etcd_server.ca))"
+          machines:
+          - etcd.service.cf.internal
+      syslog_drain_binder:
+        etcd:
+          client_cert: "((etcd_client.certificate))"
+          client_key: "((etcd_client.private_key))"
+      system_domain: "((system_domain))"
+      cc:
+        mutual_tls:
+          ca_cert: "((loggregator_tls_syslogdrainbinder.ca))"
+        bulk_api_password: "((cc_bulk_api_password))"
+        srv_api_uri: https://api.((system_domain))
+      ssl: *ssl
 
 stemcells:
 - alias: trusty
