@@ -30,6 +30,23 @@ fi
 lib_dir="$(cd $(dirname "$0")/../lib && pwd)"
 source $lib_dir/setup-environment.sh
 
-$lib_dir/deploy-bosh-director.sh $1
-$lib_dir/deploy-concourse.sh
-$lib_dir/deploy-cf.sh
+try_twice() {
+  echo "Called with: ${@}"
+  n=0
+  until [ $n -ge 2 ]
+  do
+    ${@} && break
+    n=$[$n+1]
+    echo "Command ${@} failed, trying again..."
+    sleep 5
+  done
+
+  echo "Expected ${@} to succeed, but it failed after 2 trys."
+  exit 1
+}
+
+try_twice $lib_dir/deploy-bosh-director.sh $1
+$lib_dir/update-cloud-config.sh
+try_twice $lib_dir/deploy-cf.sh
+$lib_dir/cf-login.sh
+try_twice $lib_dir/deploy-concourse.sh

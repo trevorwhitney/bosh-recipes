@@ -133,12 +133,12 @@ networks:
   - name: concourse-private
     type: manual
     subnets:
-    - az: z1
+    - az: z2
       range: 10.150.0.0/24
       gateway: 10.150.0.1
       cloud_properties:
         network_name: bosh
-        subnetwork_name: concourse-public-"((concourse_region))"-1
+        subnetwork_name: "((concourse_network))"
         ephemeral_external_ip: false
         tags:
           - concourse-public
@@ -192,7 +192,7 @@ variables:
   type: string
 - name: google_region_compilation
   type: string
-- name: concourse_region
+- name: concourse_network
   type: string
 - name: network
   type: string

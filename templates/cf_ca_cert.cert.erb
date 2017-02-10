@@ -1,0 +1,7 @@
+<%
+  require 'yaml'
+  bosh_deployment_vars_path = "#{ENV['privates_dir']}/#{ENV['project_id']}/cf-deployment-vars.yml"
+  uaa_ca = YAML.load_file(bosh_deployment_vars_path)['uaa_ca']
+%>
+<%= uaa_ca['ca'] %>
+

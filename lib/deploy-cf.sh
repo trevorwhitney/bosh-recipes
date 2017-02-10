@@ -12,6 +12,28 @@ if [ -z "$gcs_secret_access_key" ]; then
   exit 1
 fi
 
+display_help() {
+  echo "Usage: $0 [option...]" >&2
+  echo
+  echo "   -i           interpolate the cloud config instead of updating it"
+  echo "   -h           display this help message"
+  echo
+  exit 1
+}
+
+interpolate=false
+while getopts "ih" opt; do
+  echo $opt
+  case "${opt}" in
+    i) interpolate=true ;;
+    h) display_help ;;
+    *) error "Unexpected option ${opt}" ;;
+  esac
+done
+
+command=deploy
+$interpolate && command=interpolate
+
 lib_dir="$(cd $(dirname "$0") && pwd)"
 source $lib_dir/setup-environment.sh
 
@@ -23,7 +45,7 @@ gcloud config set compute/zone $zone
 
 source $lib_dir/setup-cf-env.sh
 
-bosh -e gcp -n -d cf deploy \
+bosh -e gcp -n -d cf $command \
   --vars-store=$privates_dir/$project_id/cf-deployment-vars.yml \
   -v system_domain="$ip.xip.io" \
   -v gcs_access_key=$gcs_access_key \
