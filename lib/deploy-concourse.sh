@@ -12,7 +12,7 @@ if [ -z "$github_client_secret" ]; then
   exit 1
 fi
 
-lib_dir="$(cd $(dirname "$0")/../lib && pwd)"
+lib_dir="$(cd $(dirname "$0") && pwd)"
 source $lib_dir/setup-environment.sh
 
 export external_ip=`gcloud compute addresses describe concourse | grep ^address: | cut -f2 -d' '`

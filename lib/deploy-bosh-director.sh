@@ -7,7 +7,7 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 
-lib_dir="$(cd $(dirname "$0")/../lib && pwd)"
+lib_dir="$(cd $(dirname "$0") && pwd)"
 source $lib_dir/setup-environment.sh
 
 if [ ! -e ~/.ssh/bosh ]; then
