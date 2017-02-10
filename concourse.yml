@@ -1,0 +1,125 @@
+---
+<%
+['director_uuid', 'common_password', 'atc_password', 'external_ip'].each do |val|
+  if ENV[val].nil? || ENV[val].empty?
+    raise "Missing environment variable: #{val}"
+  end
+end
+director_uuid = ENV['director_uuid']
+external_url = "http://#{ENV['external_ip']}"
+common_password = ENV['common_password']
+atc_password = ENV['atc_password']
+github_client_id = ENV['github_client_id']
+github_client_secret = ENV['github_client_secret']
+deployment_name = "concourse"
+%>
+---
+name: concourse
+
+releases:
+- name: concourse
+  version: 2.6.0
+- name: garden-runc
+  version: 1.1.1
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: latest
+
+instance_groups:
+- name: web
+  instances: 1
+  vm_type: common
+  azs: [z1,z2]
+  vm_extensions: [concourse-lb]
+  stemcell: trusty
+  networks: 
+  - name: public
+    default: [dns, gateway]
+
+  jobs:
+  - name: atc
+    release: concourse
+    properties:
+      bind_port: 80
+      external_url: "((external_url))"
+      publicly_viewable: true
+      github_auth:
+        client_id: "((github_client_id))"
+        client_secret: "((github_client_secret))"
+        authorize:
+            - user: trevorwhitney
+
+      postgresql_database: &atc_db atc
+
+  - name: tsa
+    release: concourse
+    properties: {}
+
+- name: db
+  instances: 1
+  vm_type: common
+  azs: [z1]
+  stemcell: trusty
+  persistent_disk_type: database
+  networks: [{name: public}]
+  jobs:
+  - name: postgresql
+    release: concourse
+    properties:
+      databases:
+      - name: *atc_db
+        role: admin
+        password: "((db_password))"
+
+- name: worker
+  instances: 1
+  vm_type: worker
+  azs: [z1]
+  stemcell: trusty
+  networks: [{name: public}]
+  jobs:
+  - name: groundcrew
+    release: concourse
+    properties: 
+      additional_resource_types:
+      - type: gcs-resource
+        image: docker:///frodenas/gcs-resource
+  - name: baggageclaim
+    release: concourse
+    properties: {}
+  - name: garden
+    release: garden-runc
+    properties:
+      garden:
+        listen_network: tcp
+        listen_address: 0.0.0.0:7777
+        network_mtu: 1432
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  serial: false
+  canary_watch_time: 1000-60000
+  update_watch_time: 1000-60000
+
+releases:
+- name: concourse
+  url: https://bosh.io/d/github.com/concourse/concourse?v=2.6.0
+  version: 2.6.0
+  sha1: 6e4c1321768df37a0e3947f59d28ddf8804bd4c0
+- name: garden-runc-release
+  url: https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.1.1
+  version: 1.1.1
+  sha1: 6e50e37efbfbfcfa803d5d87a7a85a3073f69243
+  
+variables:
+- name: external_url
+  type: string
+- name: github_client_id
+  type: string
+- name: github_client_secret
+  type: string
+- name: db_passowrd
+  type: password

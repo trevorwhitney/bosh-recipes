@@ -12,24 +12,16 @@ if [ -z "$github_client_secret" ]; then
   exit 1
 fi
 
-bin_dir="$(cd $(dirname "$0") && pwd)"
-source $bin_dir/setup_environment.sh
-
-bosh upload stemcell https://bosh.io/d/stemcells/bosh-google-kvm-ubuntu-trusty-go_agent?v=3312.17
-bosh upload release https://bosh.io/d/github.com/concourse/concourse?v=2.6.0
-bosh upload release https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=1.1.1
-bosh update cloud-config concourse/cloud-config.yml
-erb $concourse_dir/credentials.yml.erb > ${privates_dir}/concourse-credentials.yml
+lib_dir="$(cd $(dirname "$0")/../lib && pwd)"
+source $lib_dir/setup-environment.sh
 
 export external_ip=`gcloud compute addresses describe concourse | grep ^address: | cut -f2 -d' '`
-export director_uuid=`bosh status --uuid 2>/dev/null`
-credentials=`ruby $bin_dir/parse-credentials.rb`
 
-export atc_password=`echo $credentials | jq .atc_password`
-export common_password=`echo $credentials | jq .common_password`
+bosh -e gcp -n -d concourse deploy \
+  --vars-store=$privates_dir/$project_id/concourse-deployment-vars.yml \
+  -v external_url="$external_ip" \
+  -v github_client_id="$github_client_id" \
+  -v github_client_secret="$github_client_secret" \
+  $gcp_dir/concourse.yml
 
-bosh update cloud-config $concourse_dir/cloud-config.yml
-bosh deployment $concourse_dir/concourse.yml
-bosh -n deploy
-
-gsutil cp ${privates_dir}/concourse-credentials.yml gs://${project_id}-terraform-config
+gsutil cp ${privates_dir}/${project_id}/concourse-deployment-vars.yml gs://${project_id}-terraform-config

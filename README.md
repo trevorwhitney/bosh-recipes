@@ -10,15 +10,10 @@ with additional instructions [here](https://medium.com/google-cloud/playing-with
 1. Enable the [GCE API](https://console.developers.google.com/apis/api/compute_component/overview) for your project
 1. Enable the [IAM API](https://console.cloud.google.com/apis/api/iam.googleapis.com/overview) for your project
 1. Enable the [Cloud Resource Manager API](https://console.cloud.google.com/apis/api/cloudresourcemanager.googleapis.com/overview)
-1. `bin/install_gcloud.sh`
-1. `gcloud config set project [PROJECT_ID]`
-1. `bin/create_terraform_key.sh`
-1. `bin/execute_terraform.sh`
-1. `bin/setup-bosh-service-account.sh`
-1. `bin/setup-cf-service-account.sh`
+1. `bin/setup-gcp.sh`
 1. `gcloud compute ssh bosh-bastion`
-1. clone this repository to `~/workspace/bosh-recipes`
-1. `cd ~/workspace/bosh-recipes`
+1. clone this repository to `~/bosh-recipes`
+1. `cd ~/bosh-recipes`
 1. `bin/deploy-bosh-director.sh [ADMIN_USERNAME]`
 1. `github_client_id=[GITHUB_CLIENT_ID] github_client_secret=[GITHUB_CLIENT_SECRET] bin/deploy-concourse.sh`
 1. You will need to create an [interoperability key](https://cloud.google.com/storage/docs/migrating#keys) to use google cloud storage as your blobstore.

@@ -7,8 +7,8 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 
-bin_dir="$(cd $(dirname "$0") && pwd)"
-source $bin_dir/setup_environment.sh
+lib_dir="$(cd $(dirname "$0")/../lib && pwd)"
+source $lib_dir/setup-environment.sh
 
 if [ ! -e ~/.ssh/bosh ]; then
   ssh-keygen -t rsa -f ~/.ssh/bosh -C bosh -N ''
@@ -44,3 +44,17 @@ echo "password: $(cat $privates_dir/$project_id/admin_password.txt)"
 bosh -e https://10.0.0.6 --ca-cert privates/twhitney-bosh/certs/rootCA.pem alias-env gcp
 bosh -e gcp login
 
+bosh -e gcp -n upload-stemcell \
+  https://bosh.io/d/stemcells/bosh-google-kvm-ubuntu-trusty-go_agent?v=3312.17
+
+source $lib_dir/setup-cf-env.sh
+bosh -e gcp -n update-cloud-config $gcp_dir/cloud-config.yml \
+  -v "zone_1=us-west1-a" \
+  -v "zone_2=us-west1-b" \
+  -v "cf_service_account=$service_account_email" \
+  -v "google_zone_compilation=$zone_compilation" \
+  -v "google_region_compilation=$region_compilation" \
+  -v "concourse_region=us-central1" \
+  -v "network=$network" \
+  -v "private_subnetwork=$private_subnet" \
+  -v "compilation_subnetwork=$compilation_subnet"
