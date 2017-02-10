@@ -50,7 +50,7 @@ bosh -e gcp -n upload-stemcell \
 source $lib_dir/setup-cf-env.sh
 bosh -e gcp -n update-cloud-config $gcp_dir/cloud-config.yml \
   -v "zone_1=us-west1-a" \
-  -v "zone_2=us-west1-b" \
+  -v "zone_2=us-central1-b" \
   -v "cf_service_account=$service_account_email" \
   -v "google_zone_compilation=$zone_compilation" \
   -v "google_region_compilation=$region_compilation" \

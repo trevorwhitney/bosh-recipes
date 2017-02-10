@@ -15,6 +15,9 @@ fi
 lib_dir="$(cd $(dirname "$0") && pwd)"
 source $lib_dir/setup-environment.sh
 
+gcloud config set compute/zone ${zone}
+gcloud config set compute/region ${region}
+
 export external_ip=`gcloud compute addresses describe concourse | grep ^address: | cut -f2 -d' '`
 
 bosh -e gcp -n -d concourse deploy \
