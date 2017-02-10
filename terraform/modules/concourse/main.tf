@@ -1,5 +1,5 @@
-resource "google_compute_subnetwork" "concourse-public-subnet-1" {
-  name          = "concourse-public-${var.region}-1"
+resource "google_compute_subnetwork" "concourse-subnet-1" {
+  name          = "concourse-private-${var.region}-1"
   ip_cidr_range = "10.150.0.0/16"
   network       = "${var.host_network_link}"
 }
