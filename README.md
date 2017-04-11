@@ -14,8 +14,9 @@ with additional instructions [here](https://medium.com/google-cloud/playing-with
 1. `gcloud compute ssh bosh-bastion`
 1. clone this repository to `~/bosh-recipes`
 1. `cd ~/bosh-recipes`
-1. You will need to create an [interoperability key](https://cloud.google.com/storage/docs/migrating#keys)
-  to use google cloud storage as your blobstore, then run the following (making sure to replace the
+
+Next you will need to create an [interoperability key](https://cloud.google.com/storage/docs/migrating#keys)
+to use google cloud storage as your blobstore, then run the following (making sure to replace the
   variables):
 
   ```bash
